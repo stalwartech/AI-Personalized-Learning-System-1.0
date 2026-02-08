@@ -15,21 +15,27 @@ function App() {
 
   return (
     <>
-    <BrowserRouter>
-      {/* <Route path='/Login' element={<Login/>}/>
-      <Route path='/Register' element={<Register/>}/> */}
+   <BrowserRouter>
+  <Routes>
 
-      <div className='flex gap-10'>
-        <Sidebar/>
+    <Route path="/Login" element={<Login />} />
+    <Route path="/Register" element={<Register />} />
+
+    <Route path="/*" element={<div className="flex gap-10">
+          <Sidebar />
           <Routes>
-            <Route path='/' element={<Dashboard/>}/>
-            <Route path='/Learn' element={<Learn/>}/>
-            <Route path='/Progress' element={<Progress/>}/>
-            <Route path='/Explore' element={<Explore/>}/>
-            <Route path='/Settings' element={<Settings/>}/>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/Learn" element={<Learn />} />
+            <Route path="/Progress" element={<Progress />} />
+            <Route path="/Explore" element={<Explore />} />
+            <Route path="/Settings" element={<Settings />} />
           </Routes>
-      </div>
-    </BrowserRouter>
+        </div>
+      }
+    />
+
+  </Routes>
+</BrowserRouter>
 
     </>
   )
