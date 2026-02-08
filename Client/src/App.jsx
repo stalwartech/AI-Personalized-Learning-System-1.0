@@ -1,33 +1,36 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
-import './App.css'
-
+import Sidebar from './components/Sidebar'
+import { BrowserRouter, Routes, Route} from 'react-router-dom'
+import Dashboard from './Pages/Dashboard'
+import Learn from './Pages/Learn'
+import Progress from './Pages/Progress'
+import Login from './Pages/Login'
+import Register from './Pages/Register'
+import Explore from './Pages/Explore'
+import Settings from './Pages/Settings'
 function App() {
-  const [count, setCount] = useState(0)
+
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <BrowserRouter>
+      {/* <Route path='/Login' element={<Login/>}/>
+      <Route path='/Register' element={<Register/>}/> */}
+
+      <div className='flex gap-10'>
+        <Sidebar/>
+          <Routes>
+            <Route path='/' element={<Dashboard/>}/>
+            <Route path='/Learn' element={<Learn/>}/>
+            <Route path='/Progress' element={<Progress/>}/>
+            <Route path='/Explore' element={<Explore/>}/>
+            <Route path='/Settings' element={<Settings/>}/>
+          </Routes>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    </BrowserRouter>
+
     </>
   )
 }
