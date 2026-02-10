@@ -9,7 +9,7 @@ const Sidebar = () => {
             <NavLink to="/" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideLayoutDashboard />Dashboard</NavLink>
             <NavLink to="/learn" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideBookOpen />Learn</NavLink>
             <NavLink to="/Progress" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideChartNoAxesColumn />Progress</NavLink>
-            <NavLink to="/Explore" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideTelescope />Explore</NavLink>
+            <NavLink to="/History" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideTelescope />History</NavLink>
             <NavLink to="/Settings" className={({ isActive }) => `w-full py-2 flex gap-2 items-center pl-10 ${isActive ? "bg-[#9CA3AF]" : "hover:bg-[#9CA3AF]"}`}><LucideSettings />Settings</NavLink>
         </div>
 

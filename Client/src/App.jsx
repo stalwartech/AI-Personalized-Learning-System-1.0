@@ -8,8 +8,8 @@ import Learn from './Pages/Learn'
 import Progress from './Pages/Progress'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
-import Explore from './Pages/Explore'
 import Settings from './Pages/Settings'
+import History from './Pages/History'
 function App() {
 
 
@@ -27,7 +27,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/Learn" element={<Learn />} />
             <Route path="/Progress" element={<Progress />} />
-            <Route path="/Explore" element={<Explore />} />
+            <Route path="/History" element={<History />} />
             <Route path="/Settings" element={<Settings />} />
           </Routes>
         </div>

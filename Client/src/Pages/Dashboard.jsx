@@ -1,5 +1,6 @@
 import { LucideArrowRight, LucideChevronRight, LucideHistory, LucideRecycle } from 'lucide-react'
 import React from 'react'
+import ProgressBar from '../components/ProgressBar'
 
 const Dashboard = () => {
   return (
@@ -11,7 +12,13 @@ const Dashboard = () => {
       {/* Second Section */}
       <div className='border p-4 rounded-lg mt-4 border-gray-300'>
         <div className='flex gap-2 w-full'>
-          <input type="text" placeholder='e.g Learn javascript' className='border p-2 rounded-md border-gray-300 w-[80%]' />
+          <input type="text" placeholder='e.g Learn javascript' className='border p-2 rounded-md border-gray-300 w-[70%]' />
+          <select className='border p-2.5 rounded-lg border-gray-300'>
+            <option value="">Select level</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Expert">Expert</option>
+          </select>
           <button className='bg-[#4f46e5] text-white p-2.5 rounded-md font-bold'>Generate Course</button>
         </div>
         <p className='text-gray-400 text-sm pt-4'>AI would create a personlaized leaening path git any topic you want</p>
@@ -23,6 +30,7 @@ const Dashboard = () => {
         <h1 className='text-gray-300 text-3xl pb-4'>Javascript for absolute beginners</h1>
         <p className='text-sm text-gray-300 pb-2'>Ai-generated Course</p>
         <progress max="100" value="45" className='border rounded-4xl w-full'>45%</progress>
+        {/* <ProgressBar value={40}/> */}
         <p className='text-sm text-gray-300 pt-2'>Lesson 3 of 6 || 50% complete</p>
         <button className='flex text-[#4f46e5] p-2.5 bg-white rounded-lg mt-4'>Continue Lesson <LucideChevronRight/></button>
       </div>
