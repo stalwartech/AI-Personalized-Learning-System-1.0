@@ -1,4 +1,4 @@
-import { LucideAArrowUp, LucideArrowUp } from 'lucide-react'
+import { LucideArrowUp } from 'lucide-react'
 import React from 'react'
 
 const Progress = () => {
