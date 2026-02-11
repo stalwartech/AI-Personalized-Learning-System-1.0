@@ -20,7 +20,7 @@ const Settings = () => {
           {/* Email Address */}
           <div className='flex gap-12 mt-6 w-[70%]'>
           <h1 className='text-xl w-35'>Email Address</h1>
-          <input type="text" className='border rounded-lg w-[60%]' />
+          <input type="text" className='border rounded-md w-[60%]' />
         </div>
       </div>
 
