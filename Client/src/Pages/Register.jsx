@@ -75,6 +75,17 @@ const calculatePasswordStrength = (password) => {
   }
 };
 
+// Get password requirements
+const getPasswordRequirements = (password) => {
+  return [
+    { text: 'At least 8 characters', met: password.length >= 8 },
+    { text: 'Contains uppercase letter (A-Z)', met: /[A-Z]/.test(password) },
+    { text: 'Contains lowercase letter (a-z)', met: /[a-z]/.test(password) },
+    { text: 'Contains number (0-9)', met: /[0-9]/.test(password) },
+    { text: 'Contains special character (!@#$%)', met: /[^A-Za-z0-9]/.test(password) }
+  ];
+};
+
 const Register = () => {
   const [passwordStrength, setPasswordStrength] = useState({ 
     strength: 0, 
@@ -83,20 +94,7 @@ const Register = () => {
     textColor: ''
   });
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors }
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      agreeToTerms: false
-    }
-  });
+  const {register,handleSubmit,watch,formState: { errors }} = useForm({resolver: yupResolver(schema),defaultValues: {fullName: '',email: '',password: '',agreeToTerms: false}});
 
   // Watch password field for strength calculation
   const password = watch('password');
@@ -111,6 +109,9 @@ const Register = () => {
     console.log('Form submitted:', data);
     // Handle your signup logic here
   };
+
+  // Get current requirements
+  const requirements = getPasswordRequirements(password || '');
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -183,17 +184,32 @@ const Register = () => {
             {password && (
               <div className="mt-2">
                 {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
                   <div 
                     className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
                     style={{ width: `${passwordStrength.strength}%` }}
                   ></div>
                 </div>
                 {/* Strength Text */}
-                <p className={`text-xs ${passwordStrength.textColor} font-medium`}>
+                <p className={`text-xs ${passwordStrength.textColor} font-medium mb-2`}>
                   {passwordStrength.text}
-                  {passwordStrength.strength < 80 && ' - Add special characters'}
                 </p>
+
+                {/* Requirements Checklist */}
+                {passwordStrength.strength < 100 && (
+                  <div className="space-y-1">
+                    {requirements.map((req, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <span className={`text-xs ${req.met ? 'text-green-600' : 'text-gray-400'}`}>
+                          {req.met ? '✓' : '○'}
+                        </span>
+                        <span className={`text-xs ${req.met ? 'text-green-600 line-through' : 'text-gray-600'}`}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             
@@ -226,10 +242,7 @@ const Register = () => {
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
+          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             Create Account
           </button>
 

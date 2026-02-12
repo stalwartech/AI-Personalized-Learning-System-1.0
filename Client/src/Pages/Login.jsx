@@ -101,17 +101,14 @@ const LoginForm = () => {
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
+          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             Sign in
           </button>
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <a href="/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <a href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Sign up
             </a>
           </p>
