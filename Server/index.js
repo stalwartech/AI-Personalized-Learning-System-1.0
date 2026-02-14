@@ -1,17 +1,30 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const app = express();
-app.use(express.json());
-const env = require('dotenv').config();
 
-// All file imports here 
-const {db} = require('./config/db')
+dotenv.config();
 
 const Port = process.env.PORT || 5000;
 
-app.listen(Port, () => {
-    console.log(`Server started on port ${Port}`);
-});
+// Middleware
+app.use(express.json());
 
+// Database
+const database = require("./config/db");
+database()
+
+// Routes
+const authRoute = require("./Route/authRoute")
+
+// Test route
 app.get('/', (req, res) => {
     res.send('Hello World!');
+});
+
+// Working with the auth Route 
+app.use("/", authRoute)
+
+// Server
+app.listen(Port, () => {
+    console.log(`Server started on port ${Port}`);
 });
