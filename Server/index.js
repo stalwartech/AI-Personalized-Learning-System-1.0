@@ -16,13 +16,14 @@ database()
 // Routes
 const authRoute = require("./Route/authRoute")
 
-// Test route
+// Testing the route
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
 // Working with the auth Route 
-app.use("/", authRoute)
+app.use("/", authRoute) //Register 
+app.use("/", authRoute); //Login
 
 // Server
 app.listen(Port, () => {
