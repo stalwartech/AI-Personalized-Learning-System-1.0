@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 });
 
 // Working with the auth Route 
-app.use("/", authRoute) //Register 
+app.use("/", authRoute); //Register 
 app.use("/", authRoute); //Login
 
 // Server

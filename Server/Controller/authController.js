@@ -1,8 +1,8 @@
 const authModel = require('../Model/authModel');
 const bcrypt = require('bcryptjs');
-
+const jwt = require("jsonwebtoken");
 const Register = async (req, res) => {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, verifytoken } = req.body;
 
     try {
         // Check if user exists
@@ -14,11 +14,15 @@ const Register = async (req, res) => {
         // If User doesnt exist, then hash the password of t he new user
         const hashPassword = await bcrypt.hash(password, process.env.SALT);
 
+        // Generate a token 
+        const token = jwt.sign({id: emailExist._id}, process.env.SECRET_KEY, { expiresIn: "1d" });
+        
         // Save the data of the user to the database system
         const user = await authModel.create({
             fullName,
             email,
-            password: hashPassword
+            password: hashPassword,
+            verifytoken: token
         });
         res.status(201).json(user);
     } catch (error) {
