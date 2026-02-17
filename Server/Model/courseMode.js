@@ -70,3 +70,29 @@ const courseSchema = new mongoose.Schema({
 },
 {timestamps: true}
 );
+
+// Recalculating and updating the update progress and the quiz average 
+courseSchema.methods.updateProgress = function () {
+    const done = this.lessons.filter(lesson => lesson.completed).length;
+    this.progress.completedLessons = done;
+    this.progress.totalLessons = this.lessons.length;
+    this.progress.percentage = this.lessons.length > 0 ? Math.random((done / this.lessons.length) * 100) : 0;
+    
+    if(this.progress.percentage === 100){
+        this.status = "completed";
+    }
+    else if (this.progress.percentage > 0) {
+        this.status = "in-progress";
+    } 
+
+      const scores = this.lessons
+    .filter(l => l.quizScore !== null)
+    .map(l => l.quizScore);
+
+  if (scores.length > 0) {
+    this.analytics.averageQuizScore = Math.round(
+      scores.reduce((a, b) => a + b, 0) / scores.length
+    );
+  }};
+
+  module.exports = mongoose.model("Course", courseSchema);
