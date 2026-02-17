@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // This is my video schema 
-const videoSchema = new mongoose({
+const videoSchema = new mongoose.Schema({
     title: String,
     videoId: String,
     thumbnail: String,
@@ -15,13 +15,13 @@ const videoSchema = new mongoose({
 );
 
 // Notes sub-schema (Embedded inside lesson)
-const noteSchema = new mongoose({
+const noteSchema = new mongoose.Schema({
     plaintext: String,
     pdfUrl: String,
 })
 
 // lesson sub-schema (Embedded inside course)
-const lessonSchema = new mongoose({
+const lessonSchema = new mongoose.Schema({
     title: {type: String, required: true},
     order: {type: Number, required: true},
     content: {type: String, required: true},
@@ -34,7 +34,7 @@ const lessonSchema = new mongoose({
 });
 
 // Progress Sub-schema (Embedded inside course)
-const progressSchema = new mongoose({
+const progressSchema = new mongoose.Schema({
     completedLessons: {type:Number, default: 0},
     totalLessons: {type:Number, default: 0},
     percentage: {type:Number, default: 0}
@@ -43,10 +43,30 @@ const progressSchema = new mongoose({
 )
 
 // Analytic sub-Schema (Embedded inside course)
-const analyticSchema = new mongoose({
+const analyticSchema = new mongoose.Schema({
     totalTimeSpent: {type:Number, default:0},
     averageQuizScore: { type: Number, default: 0},
     lastAccessed: {type: Date, default: Date.now}
 },
 {_id: false}
+);
+
+// Course schema (The parent schema of all)
+const courseSchema = new mongoose.Schema({
+    userId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "auths",
+        required: true
+    },
+    title: {type: String, required:  true},
+    description: {type: String, required: true},
+    difficulty: {type: String, enum:["Beginner", "Intermediate", "Advance"], required: true},
+    searchQuery: {type: String, required: true},
+    category: {type: String, default: "General"},
+    lessons: [lessonSchema], // Embdedded array
+    status:{type: String, enum: ["in-progress", "completed", "abandoned"], default: "in-progress"},
+    progress: progressSchema,
+    analytic: analyticSchema,
+},
+{timestamps: true}
 );
