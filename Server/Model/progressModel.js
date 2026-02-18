@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const dailyActivitySchema = new mongoose.Schema({ // This show th daily activity of the user
     date: {type: Date, required: true},
     timeSpent: {type: Number, required: true}, // minutes
-    lessonsCompleted: {type: Number, default: 0},
+    lessonsCompleted: {type: Number, default: 0}, // This shows the value of the completed lessons
 },
 {_id: false}
 
