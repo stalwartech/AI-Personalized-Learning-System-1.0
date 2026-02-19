@@ -21,7 +21,7 @@ const getCourseHistory = async (req, res) => {
             total,
             limit: parseInt(limit),
             skip: parseInt(skip),
-            hasMore: total > parseInt(skip) + parseInt(limit)
+            hasMore: total > parseInt(skip) + parseInt(limit) // This is for pagination
         }
     })
     }
