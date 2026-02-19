@@ -8,7 +8,7 @@ const getCourseHistory = async (req, res) => {
 
     const [courses, total] = await Promise.all([
       Course.find(filter)
-        .sort({ updatedAt: -1 })
+        .sort({ updatedAt: -1 }) // sort by updated date
         .limit(parseInt(limit))
         .skip(parseInt(skip))
         .select('-lessons.content -lessons.notes'), // skip heavy fields in list view
