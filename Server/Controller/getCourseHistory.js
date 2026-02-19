@@ -3,7 +3,7 @@ const getCourseHistory = async (req, res) => {
     try{
         const {status, limit =20, skip=0} = req.query;
 
-        const filter = {userId: req.userId};
+        const filter = {userId: req.userId}; // Get the user id
         if(status) filter.status = status;
 
     const [courses, total] = await Promise.all([
@@ -19,8 +19,8 @@ const getCourseHistory = async (req, res) => {
         courses,
         pagination:{
             total,
-            limit: parseInt(limit),
-            skip: parseInt(skip),
+            limit: parseInt(limit), // This is for pagination
+            skip: parseInt(skip), // This is for pagination
             hasMore: total > parseInt(skip) + parseInt(limit) // This is for pagination
         }
     })
