@@ -94,5 +94,6 @@ courseSchema.methods.updateProgress = function () {
       scores.reduce((a, b) => a + b, 0) / scores.length
     );
   }};
+const Course = mongoose.model("Course", courseSchema);
 
-  module.exports = mongoose.model("Course", courseSchema);
+  module.exports = Course
