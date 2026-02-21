@@ -1,0 +1,52 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const auth = require('../middleware/auth');
+const {
+  generateCourse, getCourseHistory, getSingleCourse,
+  selectVideo, completeLesson, deleteCourse, downloadPDF
+} = require('../controllers/course');
+
+/**
+ * COURSE ROUTES
+ * All course-related endpoints
+ */
+
+// ─── Validation Rules ─────────────────────────────────────────────────────────
+const generateValidation = [
+  body('query').trim().notEmpty().withMessage('Search query is required'),
+  body('difficulty').isIn(['beginner', 'intermediate', 'advanced']).withMessage('Invalid difficulty')
+];
+
+const videoValidation = [
+  body('videoId').trim().notEmpty().withMessage('Video ID is required')
+];
+
+const completeLessonValidation = [
+  body('quizScore').optional().isInt({ min: 0, max: 100 }).withMessage('Quiz score must be 0-100'),
+  body('timeSpent').optional().isInt({ min: 0 }).withMessage('Time spent must be positive')
+];
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+// PDF download (public - anyone with link can download)
+router.get('/notes/pdf/:filename', downloadPDF);
+
+// Generate new course (main feature!)
+router.post('/generate', auth, generateValidation, generateCourse);
+
+// Get list of user's courses
+router.get('/history', auth, getCourseHistory);
+
+// Get single course with all details
+router.get('/:courseId', auth, getSingleCourse);
+
+// Delete a course
+router.delete('/:courseId', auth, deleteCourse);
+
+// Select which video to use for a lesson
+router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo);
+
+// Mark lesson as completed
+router.put('/:courseId/lessons/:lessonId/complete', auth, completeLessonValidation, completeLesson);
+
+module.exports = router;
