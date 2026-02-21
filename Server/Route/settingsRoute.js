@@ -36,7 +36,7 @@ const deleteAccountValidation = [
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-// Get user profile
+// Get user profile with its middleware 
 router.get('/profile', auth, getProfile);
 
 // Update profile (name, email)
