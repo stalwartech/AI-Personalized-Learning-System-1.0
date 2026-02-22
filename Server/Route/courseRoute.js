@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { body } = require('express-validator');
+const { body } = require('express-validator'); // installed with npm
 const auth = require('../middleware/auth');
 const {  generateCourse, getCourseHistory, getSingleCourse, selectVideo, completeLesson, deleteCourse, downloadPDF} = require('../controllers/course');
 
