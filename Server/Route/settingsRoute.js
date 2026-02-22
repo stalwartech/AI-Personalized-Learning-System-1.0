@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
-const auth = require('../middleware/auth');
+const auth = require('../Middleware/authMiddleware');
 const { getProfile, updateProfile, changePassword, updatePreferences, deleteAccount } = require('../controllers/settings');
 
 /**
