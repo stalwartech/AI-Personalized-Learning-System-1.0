@@ -4,7 +4,7 @@ const getCourseHistory = async (req, res) => {
         const {status, limit =20, skip=0} = req.query;
 
         const filter = {userId: req.userId}; // Get the user id
-        if(status) filter.status = status;
+        if(status) filter.status = status; // 
 
     const [courses, total] = await Promise.all([
       Course.find(filter).sort({ updatedAt: -1 }).limit(parseInt(limit)).skip(parseInt(skip)).select('-lessons.content -lessons.notes'), 
