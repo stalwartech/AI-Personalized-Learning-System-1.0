@@ -6,7 +6,7 @@ const authMiddleware = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
       const token = req.headers.authorization.split(" ")[1];
 
-      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verify the token by _id
 
       if (!decoded) {
         return res.status(401).json({ message: "Unauthorized token" });
