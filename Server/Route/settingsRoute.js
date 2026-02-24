@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
-const auth = require('../Middleware/authMiddleware');
+const auth = require('../middleware/AuthMiddleware');
 const { getProfile, updateProfile, changePassword, updatePreferences, deleteAccount } = require('../controllers/settings');
 
 /**
@@ -36,7 +36,7 @@ const deleteAccountValidation = [
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-// Get user profile with its middleware 
+// Get user profile
 router.get('/profile', auth, getProfile);
 
 // Update profile (name, email)

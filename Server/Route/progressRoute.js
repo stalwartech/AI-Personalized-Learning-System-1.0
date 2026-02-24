@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const authMiddleware = require('../Middleware/authMiddleware');
+const auth = require('../middleware/AuthMiddleware');
 const { getProgress, getWeeklyActivity, getTopicsMastery, getPerformanceTrends } = require('../controllers/progress');
 
 /**
@@ -8,15 +8,15 @@ const { getProgress, getWeeklyActivity, getTopicsMastery, getPerformanceTrends }
  */
 
 // Get overall progress and stats
-router.get('/', authMiddleware, getProgress);
+router.get('/', auth, getProgress);
 
 // Get last 7 days activity (for charts)
-router.get('/weekly-activity', authMiddleware, getWeeklyActivity);
+router.get('/weekly-activity', auth, getWeeklyActivity);
 
 // Get progress on different topics/courses
-router.get('/topics-mastery', authMiddleware, getTopicsMastery);
+router.get('/topics-mastery', auth, getTopicsMastery);
 
 // Get quiz score trends over time
-router.get('/performance-trends', authMiddleware, getPerformanceTrends);
+router.get('/performance-trends', auth, getPerformanceTrends);
 
 module.exports = router;

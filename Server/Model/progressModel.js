@@ -1,82 +1,182 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-// Daily activity sub schema (Embedded)
-const dailyActivitySchema = new mongoose.Schema({ 
-    date: {type: Date, required: true}, 
-    timeSpent: {type: Number, required: true}, // minutes
-    lessonsCompleted: {type: Number, default: 0}, 
-},
-{_id: false});
+// ─────────────────────────────────────────────────────────────────────────────
+// DAILY ACTIVITY SUB-SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+// Tracks what the user did each day
+// Example: On Monday, spent 45 minutes, completed 3 lessons
+// ─────────────────────────────────────────────────────────────────────────────
+const dailyActivitySchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true  // The specific day (e.g., 2025-02-20)
+  },
+  timeSpent: {
+    type: Number,
+    default: 0  // How many minutes spent learning that day
+  },
+  lessonsCompleted: {
+    type: Number,
+    default: 0  // How many lessons finished that day
+  }
+}, { _id: false });
 
-// Weak area sub- schema (embedded)
+// ─────────────────────────────────────────────────────────────────────────────
+// WEAK AREA SUB-SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+// Tracks topics where the user scored poorly (< 75%)
+// Used to suggest what to review
+// ─────────────────────────────────────────────────────────────────────────────
 const weakAreaSchema = new mongoose.Schema({
-    topic: String,
-    score: Number,
-    courseId: mongoose.Schema.Types.ObjectId,
-    lastReviewed: Date
-}, {_id: false});
+  topic: String,     // "JavaScript Loops"
+  score: Number,     // 68 (their quiz score)
+  courseId: mongoose.Schema.Types.ObjectId,  // Which course it's from
+  lastReviewed: Date  // When they last looked at it
+}, { _id: false });
 
-// Main progress schema 
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN PROGRESS SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+// One progress document per user (tracks everything they've done)
+// ─────────────────────────────────────────────────────────────────────────────
 const progressSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "auths",
-        required: true,
-        unique: true
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true  // Each user has exactly ONE progress document
+  },
+  
+  // Overall statistics
+  totalStats: {
+    totalLearningTime: {
+      type: Number,
+      default: 0  // Total minutes across all courses
     },
-    totalStats: {
-        totalLearningTime: {type: Number, defualt: 0}, // Minutes 
-        courseGenerated: {type: Number, default: 0},
-        courseCompleted: {type: Number, default: 0},
-        courseInProgress: {type: Number, default: 0},
-        averageQuizScore: {type: Number, default: 0},
-        totalLessonsCompleted: {type: Number, default: 0},
+    coursesGenerated: {
+      type: Number,
+      default: 0  // How many courses created
     },
-    dailyActivity: [dailyActivitySchema],
-    weakAreas: [weakAreaSchema],
-    learningVelocity: {
-        lessonsPerDay:{type: Number, default: 0},
-        dayPerCourse: {type: Number, default: 0},
-        avgSessionLength: {type: Number, default: 0},
-        activityDaysPerWeek: {type: Number, default: 0}
+    coursesCompleted: {
+      type: Number,
+      default: 0  // How many courses finished (100%)
     },
-}, {timestamps: true});
-
-// Add or update today's acitivity 
-progressSchema.methods.addActivity = function(timeSpent, lessonsCompleted){
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    const existing = this.dailyActivity.find(a => a.date.getTime() === today.getTime());
-
-    if(existing){
-        existing.timeSpent += timeSpent;
-        existing.lessonsCompleted += lessonsCompleted;
+    coursesInProgress: {
+      type: Number,
+      default: 0  // How many courses started but not finished
+    },
+    averageQuizScore: {
+      type: Number,
+      default: 0  // Average score across ALL quizzes
+    },
+    totalLessonsCompleted: {
+      type: Number,
+      default: 0  // Total lessons finished across all courses
     }
-    else{
-        this.dailyActivity.push({date: today, timeSpent, lessonsCompleted});
+  },
+  
+  // EMBEDDED: Array of daily activities (last 90 days)
+  dailyActivity: [dailyActivitySchema],
+  
+  // Learning velocity (how fast they're learning)
+  learningVelocity: {
+    lessonsPerDay: {
+      type: Number,
+      default: 0  // Average lessons completed per day
+    },
+    daysPerCourse: {
+      type: Number,
+      default: 0  // Average days to complete a course
+    },
+    avgSessionLength: {
+      type: Number,
+      default: 0  // Average minutes per study session
+    },
+    activeDaysPerWeek: {
+      type: Number,
+      default: 0  // How many days per week they study
     }
+  },
+  
+  // EMBEDDED: Topics they need to review
+  weakAreas: [weakAreaSchema]
+  
+}, { timestamps: true });
 
-    // Keep only last 90 days
-    if(this.dailyActivity.length > 90){
-        this.dailyActivity.slice(-90);
-    }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// INSTANCE METHOD - Add or update today's activity
+// ─────────────────────────────────────────────────────────────────────────────
+// Called when user completes a lesson
+// Example: progress.addActivity(25, 1); // 25 minutes, 1 lesson
+// ─────────────────────────────────────────────────────────────────────────────
+progressSchema.methods.addActivity = function(timeSpent, lessonsCompleted) {
+  // Get today's date at midnight (ignore hours/minutes/seconds)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Check if we already have an entry for today
+  const existingActivity = this.dailyActivity.find(activity => {
+    return activity.date.getTime() === today.getTime();
+  });
+  
+  if (existingActivity) {
+    // Today already exists - update it
+    existingActivity.timeSpent += timeSpent;
+    existingActivity.lessonsCompleted += lessonsCompleted;
+  } else {
+    // Today doesn't exist yet - create new entry
+    this.dailyActivity.push({
+      date: today,
+      timeSpent: timeSpent,
+      lessonsCompleted: lessonsCompleted
+    });
+  }
+  
+  // Keep only the last 90 days to save space
+  if (this.dailyActivity.length > 90) {
+    // Remove oldest entries, keep most recent 90
+    this.dailyActivity = this.dailyActivity.slice(-90);
+  }
+};
 
-
-// ── Recalculate learning velocity from last 7 days ───────────────────────────
-progressSchema.methods.calculateVelocity = function () {
-  const last7 = this.dailyActivity.slice(-7);
-  if (!last7.length) return;
-
-  const totalLessons = last7.reduce((s, d) => s + d.lessonsCompleted, 0);
-  const totalTime    = last7.reduce((s, d) => s + d.timeSpent, 0);
-  const activeDays   = last7.filter(d => d.timeSpent > 0).length;
-
-  this.learningVelocity.lessonsPerDay     = Number((totalLessons / 7).toFixed(1));
+// ─────────────────────────────────────────────────────────────────────────────
+// INSTANCE METHOD - Calculate learning velocity
+// ─────────────────────────────────────────────────────────────────────────────
+// Looks at last 7 days and calculates how fast user is learning
+// Example: progress.calculateVelocity();
+// ─────────────────────────────────────────────────────────────────────────────
+progressSchema.methods.calculateVelocity = function() {
+  // Get last 7 days of activity
+  const lastSevenDays = this.dailyActivity.slice(-7);
+  
+  // If no data, exit early
+  if (lastSevenDays.length === 0) {
+    return;
+  }
+  
+  // Count total lessons in last 7 days
+  const totalLessons = lastSevenDays.reduce((sum, day) => {
+    return sum + day.lessonsCompleted;
+  }, 0);
+  
+  // Average lessons per day = total / 7
+  this.learningVelocity.lessonsPerDay = Number((totalLessons / 7).toFixed(1));
+  
+  // Count total time in last 7 days
+  const totalTime = lastSevenDays.reduce((sum, day) => {
+    return sum + day.timeSpent;
+  }, 0);
+  
+  // Count how many days user actually studied (timeSpent > 0)
+  const activeDays = lastSevenDays.filter(day => day.timeSpent > 0).length;
   this.learningVelocity.activeDaysPerWeek = activeDays;
-  this.learningVelocity.avgSessionLength  = activeDays > 0
-    ? Math.round(totalTime / activeDays) : 0;
+  
+  // Average session length = total time / active days
+  if (activeDays > 0) {
+    this.learningVelocity.avgSessionLength = Math.round(totalTime / activeDays);
+  } else {
+    this.learningVelocity.avgSessionLength = 0;
+  }
 };
 
 module.exports = mongoose.model('Progress', progressSchema);
