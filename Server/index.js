@@ -25,6 +25,13 @@ app.get('/', (req, res) => {
 app.use("/", authRoute); //Register 
 app.use("/", authRoute); //Login
 
+// Routes
+// app.use('/api/auth',     require('./routes/AuthRoutes'));
+// app.use('/api/courses',  require('./routes/CourseRoutes'));
+// app.use('/api/progress', require('./routes/ProgressRoutes'));
+// app.use('/api/settings', require('./routes/SettingsRoutes'));
+
+
 // Server
 app.listen(Port, () => {
     console.log(`Server started on port ${Port}`);
