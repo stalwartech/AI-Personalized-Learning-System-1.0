@@ -1,4 +1,4 @@
-const Course = require("../Model/courseMode");
+const Course = require("../../Model/courseMode");
 const getCourseHistory = async (req, res) => {
     try{
         const {status, limit =20, skip=0} = req.query;
