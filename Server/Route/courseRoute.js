@@ -1,88 +1,49 @@
-const axios = require('axios');
-const { formatDuration, formatViewCount } = require('./formatters');
+const router = require('express').Router();
+const { body } = require('express-validator');
+const auth = require('../Middleware/authMiddleware');
+const generateCourse = require("../Controller/course/generateCourse");
+const getCourseHistory = require("../Controller/course/getCourseHistory");
+const getSingleCourse = require("../Controller/course/getSingleCourse");
+const selectVideo = require("../Controller/course/selectVideo");
+const completeLesson = require("../Controller/course/completeLesson");
+const deleteCourse = require("../Controller/course/deleteCourseController");
+const downloadPDF = require("../Controller/course/downloadPDFController");
 
-/**
- * YOUTUBE SERVICE - SEARCH VIDEOS
- * 
- * Searches YouTube for educational videos
- * Returns top 3 videos with details (title, thumbnail, duration, views)
- */
+/** * COURSE ROUTES* All course-related endpoints */
+// ─── Validation Rules ─────────────────────────────────────────────────────────
+const generateValidation = [
+  body('query').trim().notEmpty().withMessage('Search query is required'),
+  body('difficulty').isIn(['beginner', 'intermediate', 'advanced']).withMessage('Invalid difficulty')
+];
 
-const BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const videoValidation = [  body('videoId').trim().notEmpty().withMessage('Video ID is required')];
 
-/**
- * Search YouTube for videos
- * 
- * @param {string} query - Search query (e.g., "Python variables tutorial beginner")
- * @param {number} maxResults - How many videos to return (default: 3)
- * @returns {Promise<Array>} - Array of video objects
- */
-const searchVideos = async (query, maxResults = 3) => {
-  try {
-    // ── Step 1: Search for videos ─────────────────────────────────────────────
-    // This gets basic info: title, thumbnail, channel
-    const searchResponse = await axios.get(`${BASE_URL}/search`, {
-      params: {
-        part: 'snippet',              // What data to return
-        q: query,                      // Search query
-        key: process.env.YOUTUBE_API_KEY,
-        type: 'video',                 // Only videos (not channels or playlists)
-        maxResults: maxResults,
-        videoDuration: 'medium',       // 4-20 minutes (not too short/long)
-        relevanceLanguage: 'en',       // English videos
-        safeSearch: 'strict',          // Family-friendly content
-        order: 'relevance'             // Most relevant first
-      }
-    });
+const completeLessonValidation = [
+  body('quizScore').optional().isInt({ min: 0, max: 100 }).withMessage('Quiz score must be 0-100'),
+  body('timeSpent').optional().isInt({ min: 0 }).withMessage('Time spent must be positive')
+];
 
-    const videoItems = searchResponse.data.items;
+// ─── Routes ───────────────────────────────────────────────────────────────────
 
-    // If no videos found, return empty array
-    if (!videoItems || videoItems.length === 0) {
-      return [];
-    }
+// PDF download (public - anyone with link can download)
+router.get('/notes/pdf/:filename', downloadPDF);
 
-    // ── Step 2: Get detailed info (duration, views) ───────────────────────────
-    // The search endpoint doesn't include duration/views, so we need another call
-    const videoIds = videoItems.map(video => video.id.videoId).join(',');
+// Generate new course (main feature!)
+router.post('/generate', auth, generateValidation, generateCourse);
 
-    const detailsResponse = await axios.get(`${BASE_URL}/videos`, {
-      params: {
-        part: 'contentDetails,statistics',
-        id: videoIds,
-        key: process.env.YOUTUBE_API_KEY
-      }
-    });
+// Get list of user's courses
+router.get('/history', auth, getCourseHistory);
 
-    const videoDetails = detailsResponse.data.items;
+// Get single course with all details
+router.get('/:courseId', auth, getSingleCourse);
 
-    // ── Step 3: Combine and format ────────────────────────────────────────────
-    const formattedVideos = videoItems.map((video, index) => {
-      const details = videoDetails[index];
-      
-      return {
-        title: video.snippet.title,
-        videoId: video.id.videoId,
-        thumbnail: video.snippet.thumbnails.medium.url,
-        channelTitle: video.snippet.channelTitle,
-        duration: formatDuration(details.contentDetails.duration),     // "15m 30s"
-        viewCount: formatViewCount(details.statistics.viewCount),      // "2.5M views"
-        url: `https://www.youtube.com/watch?v=${video.id.videoId}`,
-        embedUrl: `https://www.youtube.com/embed/${video.id.videoId}`
-      };
-    });
+// Delete a course
+router.delete('/:courseId', auth, deleteCourse);
 
-    return formattedVideos;
+// Select which video to use for a lesson
+router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo);
 
-  } catch (error) {
-    console.error('YouTube API Error:', error.response?.data || error.message);
-    
-    if (error.response?.status === 403) {
-      throw new Error('YouTube API quota exceeded or invalid API key');
-    }
-    
-    throw new Error('Failed to fetch YouTube videos');
-  }
-};
+// Mark lesson as completed
+router.put('/:courseId/lessons/:lessonId/complete', auth, completeLessonValidation, completeLesson);
 
-module.exports = { searchVideos };
+module.exports = router;

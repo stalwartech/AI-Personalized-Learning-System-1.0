@@ -1,8 +1,9 @@
 const authModel = require('../Model/authModel');
 const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
+const env = require("dotenv").config();
 const Register = async (req, res) => {
-    const { fullName, email, password, verifytoken } = req.body;
+    const { fullName, email, password } = req.body;
 
     try {
         // Check if user exists
@@ -12,7 +13,7 @@ const Register = async (req, res) => {
         }
 
         // If User doesnt exist, then hash the password of t he new user
-        const hashPassword = await bcrypt.hash(password, process.env.SALT);
+        const hashPassword = await bcrypt.hash(password, 10);        
        
         // Save the data of the user to the database system
         const user = await authModel.create({
@@ -23,7 +24,7 @@ const Register = async (req, res) => {
         res.status(201).json(user);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error" , error: error.message});
     }
 };
 
@@ -31,6 +32,7 @@ const Login = async(req, res) => {
     const { email, password } = req.body;
     // Check if email exists 
     const User = await authModel.findOne({ email });
+    console.log(User)
     if(!User){
         return res.status(400).json({ message: "Email not found" });
     }
