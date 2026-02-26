@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
-const Course = require('../../models/CourseModel');
-const Progress = require('../../models/ProgressModel');
+const Course = require('../../Model/courseModel');
+const Progress = require('../../Model/progressModel');
 
 /**
  * COMPLETE LESSON CONTROLLER

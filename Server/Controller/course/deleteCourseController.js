@@ -1,5 +1,5 @@
-const Course = require('../../models/CourseModel');
-const Progress = require('../../models/ProgressModel');
+const Course = require('../../Model/courseModel');
+const Progress = require('../../Model/progressModel');
 
 /**
  * DELETE COURSE CONTROLLER

@@ -1,9 +1,12 @@
 const { validationResult } = require('express-validator');
-const Course = require('../../models/CourseModel');
-const Progress = require('../../models/ProgressModel');
-const { generateCourse: generateCourseWithAI, generateNotes } = require('../../services');
-const { searchVideos } = require('../../services');
-const { generatePDF } = require('../../services');
+const Course = require('../../Model/courseModel');
+const Progress = require('../../Model/progressModel');
+const generateCourse = require('../../Services/AIGenerateCourseService');
+const generateCourseWithAI = require("../../Services/AIGenerateCourseService");
+const generateNotes = require('../../Services/AIGenerateNoteService');
+
+const { searchVideos } = require('../../Services');
+const { generatePDF } = require('../../Services');
 
 /**
  * Helper function: Convert markdown text to plain text
@@ -108,11 +111,7 @@ const generateCourse = async (req, res) => {
           
           // ── 4b: Generate AI notes ───────────────────────────────────────────
           // AI creates study notes based on the lesson content
-          const notesInMarkdown = await generateNotes(
-            lesson.title,
-            lesson.content,
-            difficulty
-          );
+          const notesInMarkdown = await generateNotes(lesson.title,lesson.content,difficulty);
           // Returns markdown text with headers, bullet points, etc.
           
           // ── 4c: Convert markdown to plain text ──────────────────────────────
