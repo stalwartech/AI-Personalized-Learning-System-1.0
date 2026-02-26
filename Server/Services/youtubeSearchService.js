@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { formatDuration, formatViewCount } = require('./formatters');
+const { formatDuration, formatViewCount } = require('./youtubeFormattersService');
 
 /**
  * YOUTUBE SERVICE - SEARCH VIDEOS

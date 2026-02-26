@@ -1,4 +1,4 @@
-const Progress = require('../../models/ProgressModel');
+const Progress = require('../../Model/progressModel');
 
 const getWeeklyActivity = async (req, res) => {
   try {

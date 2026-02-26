@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
-const User = require('../../models/UserModel');
-const Course = require('../../models/CourseModel');
-const Progress = require('../../models/ProgressModel');
+const User = require('../../Model/authModel');
+const Course = require('../../Model/courseModel');
+const Progress = require('../../Model/progressModel');
 
 const deleteAccount = async (req, res) => {
   try {

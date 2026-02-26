@@ -1,12 +1,11 @@
 const { validationResult } = require('express-validator');
 const Course = require('../../Model/courseModel');
 const Progress = require('../../Model/progressModel');
-const generateCourse = require('../../Services/AIGenerateCourseService');
 const generateCourseWithAI = require("../../Services/AIGenerateCourseService");
 const generateNotes = require('../../Services/AIGenerateNoteService');
 
-const { searchVideos } = require('../../Services');
-const { generatePDF } = require('../../Services');
+const { searchVideos } = require('../../Services/youtubeSearchService');
+const { generatePDF } = require('../../Services/PDFgenerator');
 
 /**
  * Helper function: Convert markdown text to plain text

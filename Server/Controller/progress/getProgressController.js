@@ -1,5 +1,5 @@
-const Progress = require('../../models/ProgressModel');
-const Course = require('../../models/CourseModel');
+const Progress = require('../../Model/progressModel');
+const Course = require('../../Model/courseModel');
 
 /**
  * GET PROGRESS CONTROLLER

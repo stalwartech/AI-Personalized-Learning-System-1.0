@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const Course = require('../../models/CourseModel');
+const Course = require('../../Model/courseModel');
 
 /**
  * SELECT VIDEO CONTROLLER

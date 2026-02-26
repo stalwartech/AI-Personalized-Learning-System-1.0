@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const User = require('../../models/UserModel');
+const User = require('../../Model/authModel');
 
 const updatePreferences = async (req, res) => {
   try {

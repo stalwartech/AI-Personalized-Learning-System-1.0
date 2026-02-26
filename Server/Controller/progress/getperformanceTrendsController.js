@@ -1,4 +1,4 @@
-const Course = require('../../models/CourseModel');
+const Course = require('../../Model/courseModel');
 
 const getPerformanceTrends = async (req, res) => {
   try {
