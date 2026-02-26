@@ -65,4 +65,4 @@ Generate notes in markdown format with these sections:
   }
 };
 
-module.exports = { generateNotes };
+module.exports =  generateNotes;

@@ -15,6 +15,7 @@ const authMiddleware = async (req, res, next) => {
       user = await authModel.findById({ _id: decoded.id});
       // console.log(user);
       req.user = user;
+      req.userId = user._id;
       next();
     } else {
       return res.status(401).json({ message: "No token, authorization denied" });

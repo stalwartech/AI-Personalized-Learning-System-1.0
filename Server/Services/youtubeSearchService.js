@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { formatDuration, formatViewCount } = require('./youtubeFormattersService');
+const env = require("dotenv").config();
 
 /**
  * YOUTUBE SERVICE - SEARCH VIDEOS
@@ -17,7 +18,7 @@ const BASE_URL = 'https://www.googleapis.com/youtube/v3';
  * @param {number} maxResults - How many videos to return (default: 3)
  * @returns {Promise<Array>} - Array of video objects
  */
-const searchVideos = async (query, maxResults = 3) => {
+const searchVideos = async (query, maxResults = 1) => {
   try {
     // ── Step 1: Search for videos ─────────────────────────────────────────────
     // This gets basic info: title, thumbnail, channel

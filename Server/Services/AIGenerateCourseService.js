@@ -8,7 +8,7 @@ const axios = require('axios');
  */
 
 const BASE_URL = 'https://openrouter.ai/api/v1';
-const MODEL = 'anthropic/claude-3.5-sonnet';
+const MODEL = 'google/gemma-3-12b-it:free';
 
 const generateCourse = async (query, difficulty) => {
   const promptForAI = `You are an expert course creator. Create a comprehensive course for: "${query}" at ${difficulty} level.
@@ -41,7 +41,7 @@ Rules:
         model: MODEL,
         messages: [{ role: 'user', content: promptForAI }],
         temperature: 0.7,
-        max_tokens: 4000
+        max_tokens: 2000
       },
       {
         headers: {
@@ -66,4 +66,4 @@ Rules:
   }
 };
 
-module.exports = { generateCourse };
+module.exports =  generateCourse;
