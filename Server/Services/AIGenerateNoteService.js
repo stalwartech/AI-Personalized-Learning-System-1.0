@@ -2,7 +2,7 @@ const axios = require('axios');
 
 /**
  * AI SERVICE - GENERATE NOTES
- * 
+
  * Creates study notes for a lesson using AI
  * Returns markdown formatted notes
  */
