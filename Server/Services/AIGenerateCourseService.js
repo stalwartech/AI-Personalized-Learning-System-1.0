@@ -2,7 +2,7 @@ const axios = require('axios');
 
 /**
  * AI SERVICE - GENERATE COURSE
- * 
+ *
  * This talks to OpenRouter API to generate course content using AI
  * OpenRouter gives us access to Claude, GPT, and other AI models
  */
