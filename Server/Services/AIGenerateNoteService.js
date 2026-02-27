@@ -8,7 +8,7 @@ const axios = require('axios');
  */
 
 const BASE_URL = 'https://openrouter.ai/api/v1';
-const MODEL = 'anthropic/claude-3.5-sonnet';
+const MODEL = 'google/gemma-3-12b-it:free';
 
 const generateNotes = async (lessonTitle, lessonContent, difficulty) => {
   const promptForAI = `Create comprehensive study notes for this lesson:
