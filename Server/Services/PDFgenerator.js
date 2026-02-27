@@ -4,7 +4,7 @@ const path = require('path');
 
 /**
  * PDF SERVICE
- 
+ *
  * Creates PDF files from markdown notes
  * PDFs are saved in the /pdfs folder
  */
