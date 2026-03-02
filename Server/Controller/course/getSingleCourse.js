@@ -34,7 +34,7 @@ const getSingleCourse = async (req, res) => {
     }
 
     // ── Step 4: Update last accessed time ─────────────────────────────────────
-    course.analytics.lastAccessed = Date.now();
+    course.lastAccessed = Date.now();
     await course.save();
 
     // ── Step 5: Send course data ──────────────────────────────────────────────

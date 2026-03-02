@@ -35,10 +35,10 @@ router.post('/generate', auth, generateValidation, generateCourse); // Working p
 router.get('/history', auth, getCourseHistory); // Working perfectly now
 
 // Get single course with all details
-router.get('/:courseId', auth, getSingleCourse);
+router.get('/:courseId', auth, getSingleCourse); // Working perfectly now
 
 // Delete a course
-router.delete('/:courseId', auth, deleteCourse);
+router.delete('/:courseId', auth, deleteCourse); // Working Perfectly now
 
 // Select which video to use for a lesson
 router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo);
