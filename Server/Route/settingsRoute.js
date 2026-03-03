@@ -1,7 +1,11 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
-const auth = require('../middleware/AuthMiddleware');
-const { getProfile, updateProfile, changePassword, updatePreferences, deleteAccount } = require('../controllers/settings');
+const auth = require('../Middleware/authMiddleware');
+const getProfile = require("../Controller/settings/getProfileController")
+const updateProfile = require("../Controller/settings/updateProfileController")
+const changePassword = require("../Controller/settings/changePasswordController")
+const updatePreferences = require("../Controller/settings/updatePreferenceController")
+const deleteAccount = require("../Controller/settings/deleteAccountController")
 
 /**
  * SETTINGS ROUTES
