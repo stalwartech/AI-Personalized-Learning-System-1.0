@@ -41,10 +41,10 @@ const deleteAccountValidation = [
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 // Get user profile
-router.get('/profile', auth, getProfile);
+router.get('/profile', auth, getProfile); // Working perfectly
 
 // Update profile (name, email)
-router.put('/profile', auth, profileValidation, updateProfile);
+router.put('/profile', auth, profileValidation, updateProfile); //
 
 // Change password
 router.put('/password', auth, passwordValidation, changePassword);
