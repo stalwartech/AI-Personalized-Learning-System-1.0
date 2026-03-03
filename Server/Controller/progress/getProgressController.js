@@ -20,7 +20,7 @@ const getProgress = async (req, res) => {
     
     // Calculate total time
     userProgress.totalStats.totalLearningTime = courses.reduce((total, course) => {
-      return total + (course.analytics.totalTimeSpent || 0);
+      return total + (course?.analytics?.totalTimeSpent || 0);
     }, 0);
 
     // Calculate average quiz score
