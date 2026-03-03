@@ -17,6 +17,7 @@ database()
 // Routes
 const authRoute = require("./Route/authRoute")
 
+
 // Testing the route
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -29,7 +30,7 @@ app.use("/", authRoute); //Login
 // Routes
 // app.use('/api/auth',     require('./routes/AuthRoutes'));
 app.use('/api/courses',  require('./Route/courseRoute'));
-// app.use('/api/progress', require('./routes/ProgressRoutes'));
+app.use('/api/progress', require("./Route/progressRoute"));
 // app.use('/api/settings', require('./routes/SettingsRoutes'));
 
 

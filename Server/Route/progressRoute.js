@@ -1,6 +1,9 @@
 const router = require('express').Router();
-const auth = require('../middleware/AuthMiddleware');
-const { getProgress, getWeeklyActivity, getTopicsMastery, getPerformanceTrends } = require('../controllers/progress');
+const auth = require('../Middleware/authMiddleware');
+const getProgress = require("../Controller/progress/getProgressController");
+const getWeeklyActivity = require("../Controller/progress/getWeeklyActivityController")
+const getTopicsMastery = require("../Controller/progress/getTopicMasteryController")
+const getPerformanceTrends = require("../Controller/progress/getperformanceTrendsController")
 
 /**
  * PROGRESS ROUTES
