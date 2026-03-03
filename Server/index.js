@@ -31,7 +31,7 @@ app.use("/", authRoute); //Login
 // app.use('/api/auth',     require('./routes/AuthRoutes'));
 app.use('/api/courses',  require('./Route/courseRoute'));
 app.use('/api/progress', require("./Route/progressRoute"));
-// app.use('/api/settings', require('./routes/SettingsRoutes'));
+app.use('/api/settings', require('./Route/settingsRoute'));
 
 
 // Server
