@@ -41,7 +41,7 @@ router.get('/:courseId', auth, getSingleCourse); // Working perfectly now
 router.delete('/:courseId', auth, deleteCourse); // Working Perfectly now
 
 // Select which video to use for a lesson
-router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo);
+router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo); // Neede to be removed
 
 // Mark lesson as completed
 router.put('/:courseId/lessons/:lessonId/complete', auth, completeLessonValidation, completeLesson);

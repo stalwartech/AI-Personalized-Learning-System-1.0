@@ -44,10 +44,10 @@ const deleteAccountValidation = [
 router.get('/profile', auth, getProfile); // Working perfectly
 
 // Update profile (name, email)
-router.put('/profile', auth, profileValidation, updateProfile); //
+router.put('/profile', auth, profileValidation, updateProfile); //Working perfectly
 
 // Change password
-router.put('/password', auth, passwordValidation, changePassword);
+router.put('/password', auth, passwordValidation, changePassword); // Working perfectly 
 
 // Update learning preferences
 router.put('/preferences', auth, preferencesValidation, updatePreferences);
