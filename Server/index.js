@@ -1,14 +1,18 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
+const cors = require('cors');
 
 dotenv.config();
 
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
+
 const Port = process.env.PORT || 5000;
 
-
 // Middleware
-app.use(express.json());
+app.use(express.json()); // make sure this is here too, to parse request bodies
 
 // Database
 const database = require("./config/db");

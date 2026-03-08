@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import axios from 'axios';
 import * as yup from 'yup';
 
 // Validation schema
 const schema = yup.object({
   fullName: yup
     .string()
-    .min(2, 'Full name must be at least 2 characters')
+    .min(3, 'Full name must be at least 3 characters')
     .required('Full name is required'),
   email: yup
     .string()
@@ -105,13 +106,23 @@ const Register = () => {
     setPasswordStrength(strength);
   }, [password]);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    
     console.log('Form submitted:', data);
     // Handle your signup logic here
+    const baseurl = "http://localhost:3021/register";
+    try {
+      const response = await axios.post(baseurl, data);
+      console.log(response);
+      alert('Registration successful!');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Get current requirements
   const requirements = getPasswordRequirements(password || '');
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -129,18 +140,8 @@ const Register = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Full Name Field */}
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              {...register('fullName')}
-              placeholder="John Doe"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.fullName ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
+            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input id="fullName" type="text" {...register('fullName')}placeholder="John Doe" className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}/>
             {errors.fullName && (
               <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
             )}

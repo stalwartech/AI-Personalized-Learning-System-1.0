@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import axios from 'axios';
 import * as yup from 'yup';
 
 // Validation schema
@@ -30,9 +31,21 @@ const LoginForm = () => {
     }
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    const baseUrl = "http://localhost:3021/login";
     console.log('Form submitted:', data);
     // Handle your login logic here
+    try {
+      const response = await axios.post(baseUrl, data);
+      if(response.status === 200){
+        console.log(response);
+        alert('Login successful!');
+      }
+      alert("invalid ail or password")
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   return (

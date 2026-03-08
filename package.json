@@ -1,6 +1,12 @@
 {
+  "name": "ai-learning-platform",
+  "scripts": {
+    "dev": "concurrently \"npm run Server\" \"npm run Client\"",
+    "Server": "cd Server && npm run dev",
+    "Client": "cd Client && npm run dev"
+  },
   "dependencies": {
-    "path": "^0.12.7",
-    "pdfkit": "^0.17.2"
+    "concurrently": "^9.2.1",
+    "path": "^0.12.7"
   }
 }

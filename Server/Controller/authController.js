@@ -29,24 +29,31 @@ const Register = async (req, res) => {
 };
 
 const Login = async(req, res) => {
-    const { email, password } = req.body;
-    // Check if email exists 
-    const User = await authModel.findOne({ email });
-    console.log(User)
-    if(!User){
-        return res.status(400).json({ message: "Email not found" });
-    }
-    // Compare the password and the hashed password 
-    const comparePassword = await bcrypt.compare(password, User.password);
-    if(!comparePassword){
-        return res.status(400).json({ message: "Password is incorrect" });
-    }
+    try {
+        const { email, password } = req.body;
+        // Check if email exists 
+        const User = await authModel.findOne({ email });
+        // console.log(User)
 
-    // Generate a token 
-    const token = jwt.sign({id: User._id}, process.env.SECRET_KEY, { expiresIn: "1d" });   
+        if(!User){
+            return res.status(400).json({ message: "Email not found" });
+        }
 
-    // If they match then return the user details
-    res.status(200).json({User, token});
+        // Compare the password and the hashed password 
+        const comparePassword = await bcrypt.compare(password, User.password);
+        if(!comparePassword){
+            return res.status(400).json({ message: "Password is incorrect" });
+        }
+
+        // Generate a token 
+        const token = jwt.sign({id: User._id}, process.env.SECRET_KEY, { expiresIn: "1d" });   
+
+        // If they match then return the user details
+        res.status(200).json({User, token});
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 }
 
 module.exports = { Register, Login };

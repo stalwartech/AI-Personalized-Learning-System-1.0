@@ -12,7 +12,7 @@ const authMiddleware = async (req, res, next) => {
         return res.status(401).json({ message: "Unauthorized token" });
       }
 
-      user = await authModel.findById({ _id: decoded.id});
+      const user = await authModel.findById(decoded.id);
       // console.log(user);
       req.user = user;
       req.userId = user._id;
