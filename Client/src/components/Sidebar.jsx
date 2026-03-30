@@ -3,6 +3,11 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Sidebar = () => {
+    // Logout function 
+   const Logout = async () => {
+        localStorage.removeItem("token");
+        window.location.href= "/login"
+   }
   return (
         <div className='bg-[#1f2937] w-50 flex flex-col justify-between h-screen text-white py-10'>
         <div className='flex flex-col gap-2 items-start'>
@@ -14,7 +19,7 @@ const Sidebar = () => {
         </div>
 
             <div className='flex flex-col items-start'>
-                <button className='hover:bg-[#9CA3AF] py-2 flex gap-2 pl-10 w-full'><LucidePower/>Logout</button>
+                <button className='hover:bg-[#9CA3AF] py-2 flex gap-2 pl-10 w-full' onClick={Logout}><LucidePower/>Logout</button>
             </div>
         </div>
   )

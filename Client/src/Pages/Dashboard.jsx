@@ -1,13 +1,35 @@
 import { LucideArrowRight, LucideChevronRight, LucideHistory, LucideRecycle } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
 import ProgressBar from '../components/ProgressBar'
+import axiosInstance from '../../services/axiosConfig'
 
 const Dashboard = () => {
+// Javscript logic code here 
+  const [User, setUser] = useState("")
+
+const apiURL = import.meta.env.VITE_BASE_URL
+const getData = async () => {
+  try{
+    // const response = await axios.get(apiURL/"api/settings/profile");
+    const myAxios = await axiosInstance.get(apiURL+"/api/settings/profile")  
+    setUser(myAxios.data.data.user.fullName)    
+    // console.log(myAxios.data.data);
+  }
+  catch(error){
+    console.log(error);
+    
+    
+  }
+}
+
+getData()
   return (
     <div className='w-full pr-10'>
       {/* First section */}
-      <h1 className='text-3xl text pt-10'>Welcome back, Stalwart!</h1>
+      <h1 className='text-3xl text pt-10'>Welcome back, {User}!</h1>
       <p className='text-gray-400 pt-2'>What will you like to learn today?</p>
+
+      
 
       {/* Second Section */}
       <div className='border p-4 rounded-lg mt-4 border-gray-300'>
