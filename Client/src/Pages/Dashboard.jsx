@@ -6,23 +6,37 @@ import axiosInstance from '../../services/axiosConfig'
 const Dashboard = () => {
 // Javscript logic code here 
   const [User, setUser] = useState("")
+  const [courseCount, setCourseCount] = useState(0)
+  const [progressCount , setProgressCount] = useState(0)
+  const [completedCount, setCompletedCount] = useState(0);
 
 const apiURL = import.meta.env.VITE_BASE_URL
 const getData = async () => {
   try{
-    // const response = await axios.get(apiURL/"api/settings/profile");
-    const myAxios = await axiosInstance.get(apiURL+"/api/settings/profile")  
-    setUser(myAxios.data.data.user.fullName)    
-    // console.log(myAxios.data.data);
+    const response = await axiosInstance.get(apiURL+"/api/settings/profile")  
+    setUser(response.data.data.user.fullName)    
   }
   catch(error){
     console.log(error);
-    
-    
+  }
+}
+
+const getCourseData = async () => {
+  try {
+      const response = await axiosInstance.get(apiURL+"/api/progress")
+      // console.log(response.data.data.progress.totalStats)
+      const Stats = response.data.data.progress.totalStats
+      setCourseCount(Stats.coursesGenerated);
+      setProgressCount(Stats.coursesInProgress);
+      setCompletedCount(Stats.coursesCompleted);
+      // console.log(Stats);
+  } catch (error) {
+    console.log(error)
   }
 }
 
 getData()
+getCourseData()
   return (
     <div className='w-full pr-10'>
       {/* First section */}
@@ -60,15 +74,15 @@ getData()
       {/* Fourth Section */}
       <div className='flex gap-3 mt-4'>
         <div className='bg-gray-100 flex flex-col w-full rounded-md p-4 border border-gray-300'>
-          <h1 className='text-3xl font-bold text-center'>8</h1>
-          <p className='text-sm text-center text-gray-500'>Topics Generated</p>
+          <h1 className='text-3xl font-bold text-center'>{courseCount}</h1>
+          <p className='text-sm text-center text-gray-500'>Courses Generated</p>
         </div>
            <div className='bg-gray-100 flex flex-col w-full rounded-md p-4 border border-gray-300'>
-          <h1 className='text-3xl font-bold text-center'>5</h1>
+          <h1 className='text-3xl font-bold text-center'>{progressCount}</h1>
           <p className='text-sm text-center text-gray-500'>In Progress</p>
         </div>
            <div className='bg-gray-100 flex flex-col w-full rounded-md p-4 border border-gray-300'>
-          <h1 className='text-3xl font-bold text-center'>3</h1>
+          <h1 className='text-3xl font-bold text-center'>{completedCount}</h1>
           <p className='text-sm text-center text-gray-500'>Completed</p>
         </div>
       </div>
