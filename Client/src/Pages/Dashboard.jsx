@@ -11,9 +11,9 @@ const Dashboard = () => {
   const [progressCount , setProgressCount] = useState(0)
   const [completedCount, setCompletedCount] = useState(0);
 
-  // kl
-  const [searchQuery, setSearchQuery] = useState('');
-  const [difficulty, setDifficulty] = useState('beginner');
+  // FORM IPUTS - What the user types
+  const [searchQuery, setSearchQuery] = useState(''); // learn javascript""
+  const [difficulty, setDifficulty] = useState('Beginner'); // Beginner, Intermediate, Advanced
 
 const apiURL = import.meta.env.VITE_BASE_URL
 const getData = async () => {
@@ -29,12 +29,10 @@ const getData = async () => {
 const getCourseData = async () => {
   try {
       const response = await axiosInstance.get(apiURL+"/api/progress")
-      // console.log(response.data.data.progress.totalStats)
       const Stats = response.data.data.progress.totalStats
       setCourseCount(Stats.coursesGenerated);
       setProgressCount(Stats.coursesInProgress);
       setCompletedCount(Stats.coursesCompleted);
-      // console.log(Stats);
   } catch (error) {
     console.log(error)
   }
@@ -42,6 +40,8 @@ const getCourseData = async () => {
 
 getData()
 getCourseData()
+
+
   return (
     <div className='w-full pr-10'>
       {/* First section */}
