@@ -1,14 +1,19 @@
 import { LucideArrowRight, LucideChevronRight, LucideHistory, LucideRecycle } from 'lucide-react'
 import React, { useState } from 'react'
-import ProgressBar from '../components/ProgressBar'
 import axiosInstance from '../../services/axiosConfig'
 
 const Dashboard = () => {
+
+// navigate - helps   
 // Javscript logic code here 
   const [User, setUser] = useState("")
   const [courseCount, setCourseCount] = useState(0)
   const [progressCount , setProgressCount] = useState(0)
   const [completedCount, setCompletedCount] = useState(0);
+
+  // kl
+  const [searchQuery, setSearchQuery] = useState('');
+  const [difficulty, setDifficulty] = useState('beginner');
 
 const apiURL = import.meta.env.VITE_BASE_URL
 const getData = async () => {
