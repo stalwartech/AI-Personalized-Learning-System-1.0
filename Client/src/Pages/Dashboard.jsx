@@ -15,6 +15,17 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState(''); // learn javascript""
   const [difficulty, setDifficulty] = useState('Beginner'); // Beginner, Intermediate, Advanced
 
+  // LOADING STATES - Show spinners when things are happening
+  const [generating, setGenerating] = useState(false); // true = showing "Generating..." spinner
+  const [loadingCourses, setLoadingCourses] = useState(true); // true = loading course list
+
+  // ERROR HANDLING - Store error messages to show user
+  const [error, setError] = useState(''); // "Failed to generate course" or empty string
+
+  // COURSES DATA - List of all user's courses from backend
+  const [courses, setCourses] = useState([]); // Array of course objects
+
+  
 const apiURL = import.meta.env.VITE_BASE_URL
 const getData = async () => {
   try{
