@@ -58,6 +58,20 @@ const handleGenerateCourse = async (e) => {
   
   // Show "Generating..." spinner and disable button
   setGenerating(true);
+
+  try {
+    // Step 1: Get the JWT token
+    const token = localStorage.getItem('token');
+
+    // Step 2 Log that the user is generating a course and it is loading already 
+    console.log('Generating course...');
+    console.log("topic", searchQuery);
+    console.log("difficulty", difficulty);
+
+    
+  } catch (error) {
+    
+  }
 }
 
 getData()
