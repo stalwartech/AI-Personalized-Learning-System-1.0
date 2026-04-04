@@ -68,7 +68,13 @@ const handleGenerateCourse = async (e) => {
     console.log("topic", searchQuery);
     console.log("difficulty", difficulty);
 
-    
+    // Step 3 
+    const response = await axiosInstance.post(apiURL+"/api/courses", { topic: searchQuery, difficulty: difficulty }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+    }
+      
+    })
   } catch (error) {
     
   }
