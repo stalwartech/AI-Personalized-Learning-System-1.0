@@ -25,7 +25,7 @@ const Dashboard = () => {
   // COURSES DATA - List of all user's courses from backend
   const [courses, setCourses] = useState([]); // Array of course objects
 
-  
+
 const apiURL = import.meta.env.VITE_BASE_URL
 const getData = async () => {
   try{
@@ -47,6 +47,17 @@ const getCourseData = async () => {
   } catch (error) {
     console.log(error)
   }
+}
+
+const handleGenerateCourse = async (e) => {
+  // Prevent page refresh (default form behavior)
+  e.preventDefault();
+  
+  // Clear any previous errors
+  setError('');
+  
+  // Show "Generating..." spinner and disable button
+  setGenerating(true);
 }
 
 getData()
