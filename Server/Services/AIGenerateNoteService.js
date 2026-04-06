@@ -7,9 +7,12 @@ const axios = require('axios');
  * Returns markdown formatted notes
  */
 
+// OpenRouter API
 const BASE_URL = 'https://openrouter.ai/api/v1';
 const MODEL = 'google/gemma-3-12b-it:free';
 
+// Gemini AI (I will change this to Gemini 2.5 pro)
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 const generateNotes = async (lessonTitle, lessonContent, difficulty) => {
   const promptForAI = `Create comprehensive study notes for this lesson:
 

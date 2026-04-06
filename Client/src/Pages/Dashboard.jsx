@@ -49,6 +49,15 @@ const getCourseData = async () => {
   }
 }
 
+const changeCourseLevel = (e) => {
+  console.log(difficulty)
+  setDifficulty(e.target.value)
+}
+
+const getInputQuery = (e) => {
+  setSearchQuery(e.target.value)
+  console.log(searchQuery);
+}
 const handleGenerateCourse = async (e) => {
   // Prevent page refresh (default form behavior)
   e.preventDefault();
@@ -68,15 +77,57 @@ const handleGenerateCourse = async (e) => {
     console.log("topic", searchQuery);
     console.log("difficulty", difficulty);
 
-    // Step 3 
-    const response = await axiosInstance.post(apiURL+"/api/courses/generate", { topic: searchQuery, difficulty: difficulty }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-    }
+    // Step 3: Send ythe post request to the backend to generate the course
+    // This will send the searchquery to the backend as the object 
+    const response = await axiosInstance.post(
+        apiURL+"/api/courses/generate", 
+        { 
+          query: searchQuery, difficulty: difficulty 
+        },
+      );
       
-    })
-  } catch (error) {
+      // console.log(apiURL);
     
+    // Step 4: Hide the "Generating..." spinner and enable button
+    setGenerating(false);
+
+    // Step 5: Add new course to the TOP of the course list 
+    // ...Course means all existing course data
+    setCourses([newCourse, ...courses])
+
+    // Step 6 clear the search query 
+    setSearchQuery("")
+
+    // Step 7 SHow success message 
+    console.log('Course generated successfully!');
+    console.log(response.data.data.course);
+    console.log(response.data.data.course);
+    alert(`Course generated successfully! ${newCourse.title}`);
+
+  } catch (error) {
+     // Try to get error message from backend
+      let errorMessage = 'Failed to generate course. Please try again.';
+      
+      if (error.response && error.response.data && error.response.data.message) {
+        // Backend sent specific error message
+        errorMessage = error.response.data.message;
+      } else if (error.message === 'timeout of 120000ms exceeded') {
+        // Request took too long
+        errorMessage = 'Course generation timed out. Backend might be slow or offline.';
+      } else if (!error.response) {
+        // No response from server
+        errorMessage = 'Cannot connect to backend. Is the server running on port 5000?';
+      }
+
+      // show error message in the red box 
+      setError(errorMessage)
+
+      // log detailed error for debugging 
+      console.log("Course generation failed", error)
+  }
+  finally{
+    // Hide "generating..." spinner and enable button 
+    setGenerating(false)
   }
 }
 
@@ -95,14 +146,19 @@ getCourseData()
       {/* Second Section */}
       <div className='border p-4 rounded-lg mt-4 border-gray-300'>
         <div className='flex gap-2 w-full'>
-          <input type="text" placeholder='e.g Learn javascript' className='border p-2 rounded-md border-gray-300 w-[70%]' />
-          <select className='border p-2.5 rounded-lg border-gray-300'>
+          <input type="text"
+          value={searchQuery}
+          placeholder='e.g Learn javascript' className='border p-2 rounded-md border-gray-300 w-[70%]' 
+          onChange={getInputQuery}
+          disabled={generating}
+          required />
+          <select className='border p-2.5 rounded-lg border-gray-300' onChange={changeCourseLevel} value={difficulty} disabled={generating}>
             <option value="">Select level</option>
             <option value="Beginner">Beginner</option>
             <option value="Intermediate">Intermediate</option>
             <option value="Expert">Expert</option>
           </select>
-          <button className='bg-[#4f46e5] text-white p-2.5 rounded-md font-bold'>Generate Course</button>
+          <button type='submit' className='bg-[#4f46e5] text-white p-2.5 rounded-md font-bold' onClick={handleGenerateCourse}>Generate Course</button>
         </div>
         <p className='text-gray-400 text-sm pt-4'>AI would create a personlaized leaening path git any topic you want</p>
       </div>
