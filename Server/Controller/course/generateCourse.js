@@ -86,6 +86,7 @@ const generateCourse = async (req, res) => {
     //   ]
     // }
     const courseDataFromAI = await generateCourseWithAI(query, difficulty);
+    console.log(courseDataFromAI);
     
     console.log(`✅ AI generated ${courseDataFromAI.lessons.length} lessons`);
 
