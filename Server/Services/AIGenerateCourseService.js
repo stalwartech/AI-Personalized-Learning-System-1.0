@@ -27,7 +27,8 @@ async function generateNotesWithOpenRouter(prompt) {
       {
         headers: {
           'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Title': 'AI Learning Platform'
         },
         timeout: 60000
       }
