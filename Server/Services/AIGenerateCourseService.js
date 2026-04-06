@@ -86,37 +86,32 @@ async function generateNotesWithGemini(prompt) {
 /**
  * Main notes generation with fallback
  */
-const generateNotes = async (lessonTitle, lessonContent, difficulty) => {
-  const prompt = `Create comprehensive study notes for this lesson:
-
-**Lesson Title:** ${lessonTitle}
-**Difficulty:** ${difficulty}
-
-**Lesson Content:**
-${lessonContent}
-
-Generate notes in markdown format with these sections:
-
-# ${lessonTitle} - Study Notes
-
-## Key Concepts
-[List 3-5 main concepts]
-
-## Summary
-[2-3 paragraph summary]
-
-## Important Points
-[Bullet points of crucial information]
-
-## Examples
-[1-2 practical examples with explanations]
-
-## Quick Review
-[3-5 review questions]
-
-## Further Reading
-[Topics to explore next]`;
-
+const generateCourse = async (query, difficulty) => {
+  
+  // Build the prompt for AI
+  const prompt = `You are an expert course creator. Create a comprehensive course for: "${query}" at ${difficulty} level.
+ 
+Return ONLY valid JSON in this exact structure:
+{
+  "title": "Course title",
+  "description": "Brief description (2-3 sentences)",
+  "category": "Category name",
+  "lessons": [
+    {
+      "title": "Lesson title",
+      "order": 1,
+      "content": "Detailed lesson content (200-300 words) with examples.",
+      "estimatedDuration": 15
+    }
+  ]
+}
+ 
+Rules:
+- Create 6-10 lessons depending on topic complexity
+- Progress logically from basics to advanced
+- estimatedDuration is in minutes (10-30 per lesson)
+- Return ONLY JSON, no extra text`;
+ 
   let result;
   
   try {
