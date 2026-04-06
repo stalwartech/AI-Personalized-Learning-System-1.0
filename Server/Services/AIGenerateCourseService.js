@@ -37,7 +37,8 @@ async function generateNotesWithOpenRouter(prompt) {
     console.log('✅ OpenRouter notes generated');
     return {
       content: response.data.choices[0].message.content,
-      provider: 'OpenRouter'
+      provider: 'OpenRouter',
+      success: true
     };
 
   } catch (error) {
