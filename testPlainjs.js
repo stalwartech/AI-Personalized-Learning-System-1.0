@@ -60,6 +60,6 @@ const text = {
    ]
  }
 
-//  console.log(text.description);
-//  console.log(text.lessons.length);
+ console.log(text.description);
+ console.log(text.lessons.length);
  
