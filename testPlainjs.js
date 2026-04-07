@@ -1,6 +1,6 @@
 const text = {
-   title: "Python for Web Development: A Beginner's Journey with Flask",
-   description: "This comprehensive beginner-level course introduces you to web development using Python and the Flask framework. Learn to build dynamic web applications from scratch, covering fundamental concepts, database integration, and basic deployment.",
+   "title": "Python for Web Development: A Beginner's Journey with Flask",
+   "description": "This comprehensive beginner-level course introduces you to web development using Python and the Flask framework. Learn to build dynamic web applications from scratch, covering fundamental concepts, database integration, and basic deployment.",
    "category": "Web Development",
    "lessons": [
      {
