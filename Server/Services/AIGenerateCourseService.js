@@ -62,7 +62,7 @@ async function generateNotesWithGemini(prompt) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.5,
-          maxOutputTokens: 2000
+          maxOutputTokens: 3000
         }
       },
       {
@@ -91,16 +91,16 @@ const generateCourse = async (query, difficulty) => {
   // Build the prompt for AI
   const prompt = `You are an expert course creator. Create a comprehensive course for: "${query}" at ${difficulty} level.
  
-Return ONLY valid JSON in this exact structure:
+Return ONLY valid JSON format strutured like it is in the below format. Ensure that the result starts with { and ends with }, do not inlcude markdown, backiks, or explantions. The JSON should be in this exact structure below:
 {
-  "title": "Course title",
-  "description": "Brief description (2-3 sentences)",
-  "category": "Category name",
-  "lessons": [
+  title: "Course title",
+  description: "Brief description (2-3 sentences)",
+  category: "Category name",
+  lessons: [
     {
       "title": "Lesson title",
       "order": 1,
-      "content": "Detailed lesson content (200-300 words) with examples.",
+      "content": "Detailed lesson content of what is expected to be learned (less than or equal to 100 characters) with examples.",
       "estimatedDuration": 15
     }
   ]
@@ -127,4 +127,4 @@ Rules:
   return result.content;
 };
 
-module.exports = generateNotes ;
+module.exports = generateCourse ;
