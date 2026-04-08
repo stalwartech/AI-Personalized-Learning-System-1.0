@@ -89,8 +89,8 @@ async function generateNotesWithGemini(prompt) {
     };
 
   } catch (error) {
-    console.error('❌ Gemini notes failed:', error.message);
-    throw new Error('Both providers failed for notes generation');
+      console.error('❌ Gemini notes failed:', error.message);
+      throw new Error('Both providers failed for notes generation');
   }
 }
 
