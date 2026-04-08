@@ -94,9 +94,7 @@ async function generateNotesWithGemini(prompt) {
   }
 }
 
-/**
- * Main notes generation with fallback
- */
+// Main notes generation with fallback
 const generateNotes = async (lessonTitle, lessonContent, difficulty) => {
   const prompt = `Create comprehensive study notes for this lesson:
 
