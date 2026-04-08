@@ -61,9 +61,8 @@ async function generateNotesWithOpenRouter(prompt) {
   throw new Error('OPENROUTER_ALL_MODELS_FAILED');
 }
 
-/**
- * Generate notes using Gemini
- */
+// Generate notes using Gemini
+
 async function generateNotesWithGemini(prompt) {
   try {
     console.log('🟢 Generating notes with Gemini...');
