@@ -85,13 +85,14 @@ const generateCourse = async (req, res) => {
     //     ... 6-8 more lessons
     //   ]
     // }
-    const courseDataFromAI = await generateCourseWithAI(query, difficulty);
+    const AiResponse = await generateCourseWithAI(query, difficulty);
+    const courseDataFromAI = JSON.parse(AiResponse);
     
     console.log(courseDataFromAI);
-    console.log(courseDataFromAI.title);
-    console.log(courseDataFromAI.description);
-    console.log(courseDataFromAI.lessons);
-    console.log(courseDataFromAI.category);
+    console.log( typeof (courseDataFromAI));
+    // console.log(courseDataFromAI.description);
+    // console.log(courseDataFromAI.lessons);
+    // console.log(courseDataFromAI.category);
 
 
     
