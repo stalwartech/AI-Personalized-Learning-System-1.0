@@ -102,7 +102,6 @@ const handleGenerateCourse = async (e) => {
     // Step 7 SHow success message 
     console.log('Course generated successfully!');
     console.log(response.data.data.course);
-    console.log(response.data.data.course);
     alert(`Course generated successfully! ${newCourse.title}`);
 
   } catch (error) {
