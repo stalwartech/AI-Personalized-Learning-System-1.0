@@ -91,6 +91,9 @@ const handleGenerateCourse = async (e) => {
     // Step 4: Hide the "Generating..." spinner and enable button
     setGenerating(false);
 
+    // Step 4: Get the new course data from the response
+    const newCourse = response.data.data.course;
+
     // Step 5: Add new course to the TOP of the course list 
     // ...Course means all existing course data
     setCourses([newCourse, ...courses])
