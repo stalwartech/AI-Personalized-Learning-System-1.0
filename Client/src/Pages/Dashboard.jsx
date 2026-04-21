@@ -13,7 +13,7 @@ const Dashboard = () => {
 
   // FORM IPUTS - What the user types
   const [searchQuery, setSearchQuery] = useState(''); // learn javascript""
-  const [difficulty, setDifficulty] = useState('Beginner'); // Beginner, Intermediate, Advanced
+  const [difficulty, setDifficulty] = useState('beginner'); // Beginner, Intermediate, Advanced
 
   // LOADING STATES - Show spinners when things are happening
   const [generating, setGenerating] = useState(false); // true = showing "Generating..." spinner
@@ -79,6 +79,7 @@ const handleGenerateCourse = async (e) => {
 
     // Step 3: Send ythe post request to the backend to generate the course
     // This will send the searchquery to the backend as the object 
+    console.log( apiURL+"/api/courses/generate")
     const response = await axiosInstance.post(
         apiURL+"/api/courses/generate", 
         { 
@@ -107,6 +108,7 @@ const handleGenerateCourse = async (e) => {
   } catch (error) {
      // Try to get error message from backend
       let errorMessage = 'Failed to generate course. Please try again.';
+      console.log(error.response, 'here i am ');
       
       if (error.response && error.response.data && error.response.data.message) {
         // Backend sent specific error message
@@ -154,9 +156,9 @@ getCourseData()
           required />
           <select className='border p-2.5 rounded-lg border-gray-300' onChange={changeCourseLevel} value={difficulty} disabled={generating}>
             <option value="">Select level</option>
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Expert">Expert</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="expert">Expert</option>
           </select>
           <button type='submit' className='bg-[#4f46e5] text-white p-2.5 rounded-md font-bold' onClick={handleGenerateCourse}>Generate Course</button>
         </div>
