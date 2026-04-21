@@ -87,7 +87,6 @@ const handleGenerateCourse = async (e) => {
         },
       );
       
-      // console.log(apiURL);
     
     // Step 4: Hide the "Generating..." spinner and enable button
     setGenerating(false);
@@ -97,7 +96,7 @@ const handleGenerateCourse = async (e) => {
     setCourses([newCourse, ...courses])
 
     // Step 6 clear the search query 
-    setSearchQuery("")
+    setSearchQuery("");
 
     // Step 7 SHow success message 
     console.log('Course generated successfully!');
