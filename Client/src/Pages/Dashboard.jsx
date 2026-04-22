@@ -3,8 +3,8 @@ import React, { useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import axiosInstance from '../../services/axiosConfig'
 
-const navigate = useNavigate()
 const Dashboard = () => {
+  const navigate = useNavigate();
 
 // navigate - helps   
 // Javscript logic code here 
@@ -96,6 +96,8 @@ const handleGenerateCourse = async (e) => {
     const newCourse = response.data.data.course;
 
     navigate(`/learn/${newCourse.id}`)
+    const {id} = req.params
+    const url = `apiURL+"/api/courses/${id}"`
     // http://localhost:3021/api/courses/:courseId
 
     // console.log(newCourse);
