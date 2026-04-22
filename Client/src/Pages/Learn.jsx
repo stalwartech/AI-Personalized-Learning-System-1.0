@@ -7,6 +7,7 @@ Conditional statements are used to make decisions in JavaScript.
 They control the flow of execution by running code only when a condition evaluates to true.
 
 `
+// const Makrdown
   return (
     <div className='w-full p-10'>
       {/* First Section */}
