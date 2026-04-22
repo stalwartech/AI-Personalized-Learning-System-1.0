@@ -1,7 +1,9 @@
 import { LucideArrowRight, LucideChevronRight, LucideHistory, LucideRecycle } from 'lucide-react'
 import React, { useState } from 'react'
+import {Link, useNavigate} from 'react-router-dom'
 import axiosInstance from '../../services/axiosConfig'
 
+const navigate = useNavigate()
 const Dashboard = () => {
 
 // navigate - helps   
@@ -77,7 +79,7 @@ const handleGenerateCourse = async (e) => {
     console.log("topic", searchQuery);
     console.log("difficulty", difficulty);
 
-    // Step 3: Send ythe post request to the backend to generate the course
+    // Step 3: Send the post request to the backend to generate the course
     // This will send the searchquery to the backend as the object 
     console.log( apiURL+"/api/courses/generate")
     const response = await axiosInstance.post(
@@ -86,20 +88,33 @@ const handleGenerateCourse = async (e) => {
           query: searchQuery, difficulty: difficulty 
         },
       );
-      
     
     // Step 4: Hide the "Generating..." spinner and enable button
     setGenerating(false);
 
-    // Step 4: Get the new course data from the response
+    // Step 5: Get the new course data from the response
     const newCourse = response.data.data.course;
+
+    navigate(`/learn/${newCourse.id}`)
+    // http://localhost:3021/api/courses/:courseId
+
+    // console.log(newCourse);
+
+    // Personal workflow 
+    // When the button is clicked and the generation is starting, let it show things like quote to keep the user motivated to complete course while it loads 
+    // After the course is completed, let the user be redirected to the learn page where the course starts.
+    // Show the user the first title of the course on the learn page
+  
+
+    // Step 4: Get the new course data from the response
+    // const newCourse = response.data.data.course;
 
     // Step 5: Add new course to the TOP of the course list 
     // ...Course means all existing course data
-    setCourses([newCourse, ...courses])
+    // setCourses([newCourse, ...courses])
 
     // Step 6 clear the search query 
-    setSearchQuery("");
+    // setSearchQuery("");
 
     // Step 7 SHow success message 
     console.log('Course generated successfully!');
