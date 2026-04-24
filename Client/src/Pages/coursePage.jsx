@@ -263,7 +263,7 @@ export default function CoursePage() {
                 <circle cx="24" cy="24" r="22" stroke="var(--border)" strokeWidth="2"/>
                 <path d="M19 16L34 24L19 32V16Z" fill="var(--text-muted)"/>
               </svg>
-              {/* <p>No video available for this lesson</p> */}
+              <p>No video available for this lesson</p>
             </div>
           )}
 
