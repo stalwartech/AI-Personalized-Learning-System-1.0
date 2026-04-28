@@ -1,454 +1,361 @@
-// import React from 'react'
-
-// const Learn = () => {
-//   const Document= `## Conditional Statements in JavaScript
-
-// Conditional statements are used to make decisions in JavaScript. 
-// They control the flow of execution by running code only when a condition evaluates to true.
-
-// `
-// // const Makrdown
-//   return (
-//     <div className='w-full p-10'>
-//       {/* First Section */}
-//       <div className='mt-10 flex justify-between w-full'>
-//         <div>
-//           <p className='text-sm text-gray-500'>AI-Generated Course</p>
-//           <p className='text-3xl font-bold'> Conditional Statement in Javascript </p>
-//         </div>
-//         <p className='text-gray-500 mt-6'>Lesson 3 of 6</p>
-//       </div>
-//       <hr className='text-gray-500 mt-2.5'/>
-
-//       {/* Second Section */}
-//       <div>
-//         <iframe className='pt-4 w-full' width="560" height="315" src="https://www.youtube.com/embed/nI8PYZNFtac?si=cOnhQOpLLgYPpMkS" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-//         <div>
-//           <h1>Learning Context</h1>
-//           <p><pre>{Document}</pre></p>
-//         </div>
-//       </div>
-        
-//     </div>
-//   )
-// }
-
-// export default Learn
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import axiosInstance from '../../services/axiosConfig';
-// import './CourseViewer.css';
 
-/**
- * ============================================================================
- * COURSE VIEWER WITH LESSON PAGINATION - BEGINNER FRIENDLY
- * ============================================================================
- * 
- * This component displays a course with pagination through lessons
- * 
- * Features:
- * 1. View one lesson at a time
- * 2. Navigate with "Previous" and "Next" buttons
- * 3. Watch YouTube videos for each lesson
- * 4. Read AI-generated study notes
- * 5. Mark lessons as complete
- * 6. Download PDF notes
- * 7. Track progress through course
- * 
- * PAGINATION CONCEPT:
- * - Think of lessons like pages in a book
- * - currentLessonIndex = which page you're on (0, 1, 2, ...)
- * - Next button = currentLessonIndex + 1
- * - Previous button = currentLessonIndex - 1
- */
-
-const CourseViewer = () => {
-  // ──────────────────────────────────────────────────────────────────────────
-  // HOOKS
-  // ──────────────────────────────────────────────────────────────────────────
-  
-  // Get courseId from URL (e.g., /course/abc123)
+const Learn = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   
-  // ──────────────────────────────────────────────────────────────────────────
-  // STATE
-  // ──────────────────────────────────────────────────────────────────────────
-  
-  // Course data from backend
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState(null);
   
-  // PAGINATION STATE - Which lesson we're viewing
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
-  // Index 0 = First lesson
-  // Index 1 = Second lesson
-  // Index 2 = Third lesson, etc.
   
-  // Active tab (what content to show)
-  const [activeTab, setActiveTab] = useState('video'); // 'video', 'notes', or 'complete'
+  const apiURL = import.meta.env.VITE_BASE_URL;
   
-  // Quiz score input
-  const [quizScore, setQuizScore] = useState('');
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // LOAD COURSE ON PAGE LOAD
-  // ──────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    fetchCourseFromBackend();
+    loadCourse();
   }, [courseId]);
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: FETCH COURSE FROM BACKEND
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * Gets the complete course with all lessons from backend
-   */
-  const fetchCourseFromBackend = async () => {
+  
+  const loadCourse = async () => {
     try {
       setLoading(true);
+      setError('');
       
-      // Get JWT token
+      // Get token
       const token = localStorage.getItem('token');
       
-      // Send GET request to backend
-      const response = await axiosInstance.get(`http://localhost:5000/api/courses/${courseId}`);
+      // Log everything for debugging
+      const requestURL = `${apiURL}/api/courses/${courseId}`;
+      console.log('═══════════════════════════════════════════');
+      console.log('📚 LOADING COURSE - DEBUG INFO');
+      console.log('═══════════════════════════════════════════');
+      console.log('Course ID from useParams():', courseId);
+      console.log('Course ID type:', typeof courseId);
+      console.log('Course ID is undefined?', courseId === undefined);
+      console.log('Course ID is "undefined" string?', courseId === 'undefined');
+      console.log('API URL:', apiURL);
+      console.log('Full Request URL:', requestURL);
+      console.log('Token exists:', !!token);
+      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+      console.log('═══════════════════════════════════════════');
       
-      // Save course data
+      // CRITICAL CHECK: Stop if courseId is undefined
+      if (!courseId || courseId === 'undefined') {
+        throw new Error(`Invalid course ID: "${courseId}". Check your App.jsx route configuration!`);
+      }
+      
+      // Store debug info in state so we can show it if needed
+      setDebugInfo({
+        courseId,
+        apiURL,
+        requestURL,
+        hasToken: !!token
+      });
+      
+      // Make request
+      const response = await axiosInstance.get(`${apiURL}/api/courses/${courseId}`);
+      
+      console.log('✅ Response received:', response);
+      console.log('Response status:', response.status);
+      console.log('Response data:', response.data);
+      
+      // Extract course data
       const courseData = response.data.data.course;
-      setCourse(courseData);
-      console.log(courseId)
       
-      console.log('✅ Course loaded:', courseData.title);
+      if (!courseData) {
+        throw new Error('Course data is empty in response');
+      }
+      
+      if (!courseData.lessons || courseData.lessons.length === 0) {
+        throw new Error('Course has no lessons');
+      }
+      
+      setCourse(courseData);
+      
+      console.log('✅ Course loaded successfully!');
+      console.log('   Title:', courseData.title);
       console.log('   Total lessons:', courseData.lessons.length);
+      console.log('   First lesson:', courseData.lessons[0]?.title);
       
     } catch (error) {
-      console.error('❌ Error loading course:', error);
-      alert('Failed to load course. Redirecting to dashboard...');
-      navigate('/');
+      console.error('═══════════════════════════════════════════');
+      console.error('❌ ERROR LOADING COURSE');
+      console.error('═══════════════════════════════════════════');
+      console.error('Error object:', error);
+      console.error('Error message:', error.message);
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        console.error('Response headers:', error.response.headers);
+        
+        // Set specific error messages based on status code
+        if (error.response.status === 401) {
+          setError('Authentication failed. Please login again.');
+          setTimeout(() => navigate('/login'), 2000);
+        } else if (error.response.status === 404) {
+          setError(`Course not found. Course ID: ${courseId}`);
+        } else if (error.response.status === 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError(error.response.data?.message || 'Failed to load course');
+        }
+      } else if (error.request) {
+        console.error('Request made but no response:', error.request);
+        setError('Cannot connect to server. Is the backend running?');
+      } else {
+        console.error('Error setting up request:', error.message);
+        setError(error.message);
+      }
+      
+      console.error('═══════════════════════════════════════════');
     } finally {
       setLoading(false);
     }
   };
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: GO TO NEXT LESSON (PAGINATION)
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * Move to the next lesson
-   * Example: If on lesson 2, move to lesson 3
-   */
+  
   const goToNextLesson = () => {
-    // Check if there's a next lesson
     if (currentLessonIndex < course.lessons.length - 1) {
       setCurrentLessonIndex(currentLessonIndex + 1);
-      setActiveTab('video'); // Switch back to video tab
-      setQuizScore(''); // Clear quiz score
-      
-      console.log(`📖 Moving to lesson ${currentLessonIndex + 2}`);
-      
-      // Scroll to top of page
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Already on last lesson
-      alert('🎉 You\'re on the last lesson!');
+      alert('🎉 You are on the last lesson!');
     }
   };
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: GO TO PREVIOUS LESSON (PAGINATION)
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * Move to the previous lesson
-   * Example: If on lesson 3, move to lesson 2
-   */
+  
   const goToPreviousLesson = () => {
-    // Check if there's a previous lesson
     if (currentLessonIndex > 0) {
       setCurrentLessonIndex(currentLessonIndex - 1);
-      setActiveTab('video'); // Switch back to video tab
-      setQuizScore(''); // Clear quiz score
-      
-      console.log(`📖 Moving to lesson ${currentLessonIndex}`);
-      
-      // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Already on first lesson
-      alert('📚 You\'re on the first lesson!');
+      alert('📚 You are on the first lesson!');
     }
   };
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: GO TO SPECIFIC LESSON
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * Jump directly to a specific lesson by clicking on sidebar
-   */
-  const goToLesson = (lessonIndex) => {
-    setCurrentLessonIndex(lessonIndex);
-    setActiveTab('video');
-    setQuizScore('');
-    
-    console.log(`📖 Jumping to lesson ${lessonIndex + 1}`);
-    
+  
+  const jumpToLesson = (index) => {
+    setCurrentLessonIndex(index);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: SELECT VIDEO
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * When user selects a different video option for the lesson
-   */
-  const handleSelectVideo = async (videoId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const currentLesson = course.lessons[currentLessonIndex];
-      
-      // Send request to backend to save video choice
-      await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/lessons/${currentLesson._id}/video`,
-        { videoId: videoId },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-      
-      // Reload course to get updated data
-      await fetchCourseFromBackend();
-      
-      console.log('✅ Video selection saved');
-      
-    } catch (error) {
-      console.error('❌ Error selecting video:', error);
-      alert('Failed to save video selection');
-    }
-  };
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // FUNCTION: MARK LESSON AS COMPLETE
-  // ──────────────────────────────────────────────────────────────────────────
-  /**
-   * Mark current lesson as completed and move to next
-   */
-  const handleCompleteLesson = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const currentLesson = course.lessons[currentLessonIndex];
-      
-      // Prepare data to send
-      const data = {
-        timeSpent: currentLesson.estimatedDuration || 15
-      };
-      
-      // Add quiz score if provided
-      if (quizScore && quizScore.trim() !== '') {
-        data.quizScore = parseInt(quizScore);
-      }
-      
-      // Send completion request to backend
-      await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
-        data,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-      
-      console.log('✅ Lesson marked as complete!');
-      
-      // Reload course to update progress
-      await fetchCourseFromBackend();
-      
-      // Check if this is the last lesson
-      if (currentLessonIndex === course.lessons.length - 1) {
-        // Last lesson completed - course finished!
-        alert('🎉 Congratulations! You completed the entire course!');
-        navigate('/');
-      } else {
-        // Move to next lesson
-        alert('✅ Lesson completed! Moving to next lesson...');
-        goToNextLesson();
-      }
-      
-    } catch (error) {
-      console.error('❌ Error completing lesson:', error);
-      alert('Failed to mark lesson as complete');
-    }
-  };
-
-  // ──────────────────────────────────────────────────────────────────────────
+  
+  // ═══════════════════════════════════════════════════════════════════════════
   // LOADING STATE
-  // ──────────────────────────────────────────────────────────────────────────
-  if (loading || !course) {
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (loading) {
     return (
-      <div className="loading-screen">
-        <span className="spinner"></span>
-        <p>Loading course...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-xl text-gray-700 font-medium">Loading course...</p>
+          <p className="mt-2 text-sm text-gray-500">Course ID: {courseId}</p>
+        </div>
       </div>
     );
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // GET CURRENT LESSON DATA
-  // ──────────────────────────────────────────────────────────────────────────
-  // Get the lesson we're currently viewing based on currentLessonIndex
-  const currentLesson = course.lessons[currentLessonIndex];
   
-  // Get the selected video for this lesson
-  const selectedVideo = currentLesson.videoOptions.find(
-    video => video.videoId === currentLesson.selectedVideo
-  ) || currentLesson.videoOptions[0]; // Default to first video if none selected
-
-  // Calculate pagination info
-  const isFirstLesson = currentLessonIndex === 0;
-  const isLastLesson = currentLessonIndex === course.lessons.length - 1;
-  const lessonNumber = currentLessonIndex + 1; // Display as 1, 2, 3 (not 0, 1, 2)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ERROR STATE WITH DEBUG INFO
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <div className="bg-white border-2 border-red-300 rounded-lg p-8 max-w-2xl w-full">
+          <h1 className="text-3xl font-bold text-red-700 mb-4">❌ Error Loading Course</h1>
+          
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-700 font-medium mb-2">Error Message:</p>
+            <p className="text-red-600">{error || 'Unknown error occurred'}</p>
+          </div>
+          
+          {debugInfo && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+              <p className="font-bold text-gray-700 mb-3">🔍 Debug Information:</p>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Course ID:</span> <code className="bg-gray-200 px-2 py-1 rounded">{debugInfo.courseId}</code></p>
+                <p><span className="font-medium">API URL:</span> <code className="bg-gray-200 px-2 py-1 rounded">{debugInfo.apiURL}</code></p>
+                <p><span className="font-medium">Request URL:</span> <code className="bg-gray-200 px-2 py-1 rounded text-xs">{debugInfo.requestURL}</code></p>
+                <p><span className="font-medium">Has Token:</span> {debugInfo.hasToken ? '✅ Yes' : '❌ No'}</p>
+              </div>
+            </div>
+          )}
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="font-bold text-blue-700 mb-2">💡 Troubleshooting Steps:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-blue-900">
+              <li>Check if backend is running on port 5000</li>
+              <li>Verify course ID exists in database</li>
+              <li>Check browser console (F12) for detailed errors</li>
+              <li>Verify you're logged in (check token in localStorage)</li>
+              <li>Check .env file has VITE_BASE_URL=http://localhost:5000</li>
+            </ol>
+          </div>
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium"
+            >
+              ← Back to Dashboard
+            </button>
+            <button 
+              onClick={loadCourse}
+              className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-medium"
+            >
+              🔄 Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GET CURRENT LESSON DATA
+  // ═══════════════════════════════════════════════════════════════════════════
+  const currentLesson = course.lessons[currentLessonIndex];
+  const lessonNumber = currentLessonIndex + 1;
   const totalLessons = course.lessons.length;
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ──────────────────────────────────────────────────────────────────────────
+  
+  const selectedVideo = currentLesson.videoOptions && currentLesson.videoOptions.length > 0 
+    ? currentLesson.videoOptions[0] 
+    : null;
+  
+  const isFirstLesson = currentLessonIndex === 0;
+  const isLastLesson = currentLessonIndex === totalLessons - 1;
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MAIN RENDER
+  // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="course-viewer">
+    <div className="min-h-screen bg-gray-50">
       
-      {/* ═══════════════════════════════════════════════════════════════════
-          SIDEBAR - List of all lessons
-          ═══════════════════════════════════════════════════════════════════ */}
-      <aside className="sidebar">
-        
-        {/* Course Info */}
-        <div className="course-info">
+      {/* HEADER */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button 
-            onClick={() => navigate('/')} 
-            className="btn-back"
+            onClick={() => navigate('/dashboard')}
+            className="text-indigo-600 hover:text-indigo-800 font-medium mb-3 flex items-center gap-2"
           >
             ← Back to Dashboard
           </button>
-          
-          <h2>{course.title}</h2>
-          
-          {/* Overall Progress Bar */}
-          <div className="progress-bar-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill"
-                style={{ width: `${course.progress.percentage}%` }}
-              ></div>
-            </div>
-            <p className="progress-text">
-              {course.progress.completedLessons} / {totalLessons} lessons completed
-            </p>
+          <h1 className="text-4xl font-bold text-gray-900">{course.title}</h1>
+          <p className="text-gray-600 mt-2 text-lg">{course.description}</p>
+          <div className="mt-3 flex gap-3 text-sm">
+            <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
+              {course.difficulty}
+            </span>
+            <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
+              {totalLessons} Lessons
+            </span>
           </div>
         </div>
-
-        {/* Lessons List */}
-        <div className="lessons-list">
-          <h3>Lessons</h3>
-          {course.lessons.map((lesson, index) => (
-            <div
-              key={lesson._id}
-              className={`lesson-item ${
-                index === currentLessonIndex ? 'active' : ''
-              } ${lesson.completed ? 'completed' : ''}`}
-              onClick={() => goToLesson(index)}
-            >
-              {/* Lesson Number/Check */}
-              <span className="lesson-number">
-                {lesson.completed ? '✓' : index + 1}
-              </span>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          {/* SIDEBAR - LESSONS LIST */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm sticky top-4">
+              <h2 className="font-bold text-xl mb-4 text-gray-900">
+                📚 Lessons ({totalLessons})
+              </h2>
               
-              {/* Lesson Details */}
-              <div className="lesson-details">
-                <h4>{lesson.title}</h4>
-                <span className="lesson-duration">
-                  {lesson.estimatedDuration} min
-                </span>
+              <div className="space-y-2">
+                {course.lessons.map((lesson, index) => (
+                  <div
+                    key={lesson._id || index}
+                    onClick={() => jumpToLesson(index)}
+                    className={`
+                      p-3 rounded-lg cursor-pointer transition-all
+                      ${index === currentLessonIndex 
+                        ? 'bg-indigo-600 text-white shadow-md transform scale-105' 
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:shadow'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="font-bold flex-shrink-0 text-lg">
+                        {lesson.completed ? '✓' : index + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm leading-tight">
+                          {lesson.title}
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          index === currentLessonIndex ? 'text-indigo-200' : 'text-gray-500'
+                        }`}>
+                          {lesson.estimatedDuration || 15} min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </aside>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          MAIN CONTENT AREA - Current lesson content
-          ═══════════════════════════════════════════════════════════════════ */}
-      <main className="main-content">
-        
-        {/* Lesson Header with Pagination Info */}
-        <div className="lesson-header">
-          <div>
-            <h1>{currentLesson.title}</h1>
-            <p className="lesson-meta">
-              Lesson {lessonNumber} of {totalLessons} • {currentLesson.estimatedDuration} minutes
-              {currentLesson.completed && <span className="completed-badge">✓ Completed</span>}
-            </p>
           </div>
-        </div>
-
-        {/* ═══ PAGINATION CONTROLS - TOP ═══ */}
-        <div className="pagination-controls">
-          <button 
-            className="btn-pagination btn-previous"
-            onClick={goToPreviousLesson}
-            disabled={isFirstLesson}
-          >
-            ← Previous Lesson
-          </button>
           
-          <span className="pagination-info">
-            Lesson {lessonNumber} / {totalLessons}
-          </span>
-          
-          <button 
-            className="btn-pagination btn-next"
-            onClick={goToNextLesson}
-            disabled={isLastLesson}
-          >
-            Next Lesson →
-          </button>
-        </div>
-
-        {/* Tabs for different content */}
-        <div className="tabs">
-          <button 
-            className={`tab ${activeTab === 'video' ? 'active' : ''}`}
-            onClick={() => setActiveTab('video')}
-          >
-            📺 Video
-          </button>
-          <button 
-            className={`tab ${activeTab === 'notes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notes')}
-          >
-            📝 Notes
-          </button>
-          <button 
-            className={`tab ${activeTab === 'complete' ? 'active' : ''}`}
-            onClick={() => setActiveTab('complete')}
-          >
-            ✅ Complete Lesson
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className="tab-content">
-          
-          {/* ═══ VIDEO TAB ═══ */}
-          {activeTab === 'video' && (
-            <div className="video-section">
+          {/* MAIN CONTENT */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
               
-              {/* YouTube Video Player */}
-              {selectedVideo && (
-                <>
-                  <div className="video-player">
+              {/* LESSON TITLE */}
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  {currentLesson.title}
+                </h2>
+                <p className="text-gray-600 text-lg">
+                  Lesson {lessonNumber} of {totalLessons} • {currentLesson.estimatedDuration || 15} minutes
+                </p>
+              </div>
+              
+              {/* PAGINATION - TOP */}
+              <div className="flex justify-between items-center mb-6 pb-6 border-b-2 border-gray-100">
+                <button
+                  onClick={goToPreviousLesson}
+                  disabled={isFirstLesson}
+                  className={`
+                    px-5 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2
+                    ${isFirstLesson 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                    }
+                  `}
+                >
+                  ← Previous
+                </button>
+                
+                <span className="text-gray-700 font-bold text-lg">
+                  {lessonNumber} / {totalLessons}
+                </span>
+                
+                <button
+                  onClick={goToNextLesson}
+                  disabled={isLastLesson}
+                  className={`
+                    px-5 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2
+                    ${isLastLesson 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                    }
+                  `}
+                >
+                  Next →
+                </button>
+              </div>
+              
+              {/* VIDEO SECTION */}
+              {selectedVideo ? (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    📺 Video Lesson
+                  </h3>
+                  
+                  <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-xl shadow-lg">
                     <iframe
-                      width="100%"
-                      height="500"
+                      className="absolute top-0 left-0 w-full h-full"
                       src={selectedVideo.embedUrl}
                       title={selectedVideo.title}
                       frameBorder="0"
@@ -456,161 +363,117 @@ const CourseViewer = () => {
                       allowFullScreen
                     ></iframe>
                   </div>
-
-                  {/* Video Info */}
-                  <div className="video-info">
-                    <h3>{selectedVideo.title}</h3>
-                    <p>By {selectedVideo.channelTitle}</p>
-                    <p>{selectedVideo.duration} • {selectedVideo.viewCount}</p>
+                  
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-bold text-gray-900 text-lg">{selectedVideo.title}</h4>
+                    <p className="text-gray-600 mt-1">
+                      By {selectedVideo.channelTitle}
+                    </p>
                   </div>
-                </>
+                </div>
+              ) : (
+                <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-yellow-800">⚠️ No video available for this lesson</p>
+                </div>
               )}
-
-              {/* Alternative Videos */}
-              {currentLesson.videoOptions.length > 1 && (
-                <div className="alternative-videos">
-                  <h4>Alternative Videos (Choose your preferred one):</h4>
-                  <div className="video-options">
-                    {currentLesson.videoOptions.map(video => (
-                      <div 
-                        key={video.videoId}
-                        className={`video-option ${
-                          video.videoId === currentLesson.selectedVideo ? 'selected' : ''
-                        }`}
-                        onClick={() => handleSelectVideo(video.videoId)}
+              
+              {/* NOTES SECTION */}
+              {currentLesson.notes && currentLesson.notes.markdown ? (
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      📝 Study Notes
+                    </h3>
+                    
+                    {currentLesson.notes.pdfUrl && (
+                      <a
+                        href={`${apiURL}${currentLesson.notes.pdfUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                       >
-                        <img src={video.thumbnail} alt={video.title} />
-                        <div className="video-option-info">
-                          <h5>{video.title}</h5>
-                          <p>{video.channelTitle}</p>
-                        </div>
-                      </div>
-                    ))}
+                        📄 Download PDF
+                      </a>
+                    )}
+                  </div>
+                  
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    {currentLesson.notes.markdown.split('\n').map((line, index) => {
+                      if (line.startsWith('# ')) {
+                        return <h1 key={index} className="text-3xl font-bold mt-8 mb-4 first:mt-0 text-gray-900">{line.slice(2)}</h1>;
+                      } else if (line.startsWith('## ')) {
+                        return <h2 key={index} className="text-2xl font-bold mt-6 mb-3 text-gray-900">{line.slice(3)}</h2>;
+                      } else if (line.startsWith('### ')) {
+                        return <h3 key={index} className="text-xl font-bold mt-5 mb-2 text-gray-900">{line.slice(4)}</h3>;
+                      } else if (line.startsWith('- ')) {
+                        return <li key={index} className="ml-6 mb-2 text-gray-700 list-disc">{line.slice(2)}</li>;
+                      } else if (line.trim() !== '') {
+                        return <p key={index} className="mb-4 text-gray-700 leading-relaxed">{line}</p>;
+                      }
+                      return null;
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <p className="text-gray-600">📝 No study notes available for this lesson</p>
+                </div>
+              )}
+              
+              {/* LESSON OVERVIEW */}
+              {currentLesson.content && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    📖 Lesson Overview
+                  </h3>
+                  <div className="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-lg">
+                    <p className="text-gray-800 leading-relaxed">{currentLesson.content}</p>
                   </div>
                 </div>
               )}
-
-              {/* Lesson Content */}
-              <div className="lesson-content">
-                <h3>Lesson Overview</h3>
-                <p>{currentLesson.content}</p>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ NOTES TAB ═══ */}
-          {activeTab === 'notes' && (
-            <div className="notes-section">
-              <div className="notes-header">
-                <h3>Study Notes</h3>
-                {currentLesson.notes.pdfUrl && (
-                  <a 
-                    href={`http://localhost:5000${currentLesson.notes.pdfUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-download-pdf"
-                  >
-                    📄 Download PDF
-                  </a>
-                )}
+              
+              {/* PAGINATION - BOTTOM */}
+              <div className="flex justify-between items-center mt-10 pt-6 border-t-2 border-gray-100">
+                <button
+                  onClick={goToPreviousLesson}
+                  disabled={isFirstLesson}
+                  className={`
+                    px-6 py-3 rounded-lg font-semibold transition-all
+                    ${isFirstLesson 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                    }
+                  `}
+                >
+                  ← Previous Lesson
+                </button>
+                
+                <span className="text-gray-700 font-bold text-lg">
+                  {lessonNumber} / {totalLessons}
+                </span>
+                
+                <button
+                  onClick={goToNextLesson}
+                  disabled={isLastLesson}
+                  className={`
+                    px-6 py-3 rounded-lg font-semibold transition-all
+                    ${isLastLesson 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                    }
+                  `}
+                >
+                  Next Lesson →
+                </button>
               </div>
               
-              {/* Display Markdown Notes */}
-              <div className="notes-content">
-                {currentLesson.notes.markdown.split('\n').map((line, index) => {
-                  if (line.startsWith('# ')) {
-                    return <h1 key={index}>{line.slice(2)}</h1>;
-                  } else if (line.startsWith('## ')) {
-                    return <h2 key={index}>{line.slice(3)}</h2>;
-                  } else if (line.startsWith('### ')) {
-                    return <h3 key={index}>{line.slice(4)}</h3>;
-                  } else if (line.startsWith('- ')) {
-                    return <li key={index}>{line.slice(2)}</li>;
-                  } else if (line.trim() !== '') {
-                    return <p key={index}>{line}</p>;
-                  }
-                  return null;
-                })}
-              </div>
             </div>
-          )}
-
-          {/* ═══ COMPLETE LESSON TAB ═══ */}
-          {activeTab === 'complete' && (
-            <div className="complete-section">
-              {!currentLesson.completed ? (
-                <>
-                  <h3>Complete This Lesson</h3>
-                  <p>Mark this lesson as completed to track your progress.</p>
-                  
-                  {/* Optional Quiz Score */}
-                  <div className="quiz-score-input">
-                    <label>Quiz Score (Optional - 0 to 100):</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={quizScore}
-                      onChange={(e) => setQuizScore(e.target.value)}
-                      placeholder="Enter your score if you took a quiz"
-                    />
-                  </div>
-                  
-                  {/* Complete Button */}
-                  <button 
-                    className="btn-complete"
-                    onClick={handleCompleteLesson}
-                  >
-                    ✅ Mark as Complete & Continue
-                  </button>
-                </>
-              ) : (
-                <div className="completed-message">
-                  <h2>✅ Lesson Completed!</h2>
-                  {currentLesson.quizScore && (
-                    <p className="quiz-score">Quiz Score: {currentLesson.quizScore}%</p>
-                  )}
-                  <p>Great job! Ready for the next lesson?</p>
-                  {!isLastLesson && (
-                    <button 
-                      className="btn-complete"
-                      onClick={goToNextLesson}
-                    >
-                      Next Lesson →
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ═══ PAGINATION CONTROLS - BOTTOM ═══ */}
-        <div className="pagination-controls pagination-bottom">
-          <button 
-            className="btn-pagination btn-previous"
-            onClick={goToPreviousLesson}
-            disabled={isFirstLesson}
-          >
-            ← Previous Lesson
-          </button>
+          </div>
           
-          <span className="pagination-info">
-            Lesson {lessonNumber} / {totalLessons}
-          </span>
-          
-          <button 
-            className="btn-pagination btn-next"
-            onClick={goToNextLesson}
-            disabled={isLastLesson}
-          >
-            Next Lesson →
-          </button>
         </div>
-
-      </main>
+      </div>
     </div>
   );
 };
 
-export default CourseViewer;
+export default Learn;
