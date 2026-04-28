@@ -29,7 +29,7 @@ const Learn = () => {
       const token = localStorage.getItem('token');
       
       // Log everything for debugging
-      const requestURL = `${apiURL}/api/courses/${courseId}`;
+      const requestURL = `${apiURL}/api/courses/${courseId}`; // Full request URL
       console.log('═══════════════════════════════════════════');
       console.log('📚 LOADING COURSE - DEBUG INFO');
       console.log('═══════════════════════════════════════════');
