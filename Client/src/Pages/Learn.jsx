@@ -19,9 +19,10 @@ const Learn = () => {
     loadCourse();
   }, [courseId]); // Add courseId as dependency
   
+
   const loadCourse = async () => {
     try {
-      setLoading(true);
+      setLoading(true); // Set loading to true
       setError('');
       
       // Get token
