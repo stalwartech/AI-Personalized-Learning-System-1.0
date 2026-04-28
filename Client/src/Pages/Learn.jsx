@@ -38,7 +38,7 @@ const Learn = () => {
       console.log('Course ID is undefined?', courseId === undefined);
       console.log('Course ID is "undefined" string?', courseId === 'undefined');
       console.log('API URL:', apiURL);
-      console.log('Full Request URL:', requestURL);
+      console.log('Full Request URL:', requestURL); // Full request URL
       console.log('Token exists:', !!token);
       console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
       console.log('═══════════════════════════════════════════');
