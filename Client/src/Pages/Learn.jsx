@@ -17,7 +17,7 @@ const Learn = () => {
   
   useEffect(() => {
     loadCourse();
-  }, [courseId]);
+  }, [courseId]); // Add courseId as dependency
   
   const loadCourse = async () => {
     try {
