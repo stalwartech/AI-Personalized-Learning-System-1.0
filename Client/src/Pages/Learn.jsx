@@ -1,6 +1,186 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
+
+const parseInlineMarkdown = (text) => {
+  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g).filter(Boolean);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={index} className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-sm text-indigo-700">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index} className="font-bold text-gray-950">{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index} className="italic text-gray-800">{part.slice(1, -1)}</em>;
+    }
+
+    return part;
+  });
+};
+
+const parseMarkdownBlocks = (markdown) => {
+  const lines = markdown.split('\n');
+  const blocks = [];
+  let paragraph = [];
+  let list = null;
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      blocks.push({ type: 'paragraph', text: paragraph.join(' ') });
+      paragraph = [];
+    }
+  };
+
+  const flushList = () => {
+    if (list) {
+      blocks.push(list);
+      list = null;
+    }
+  };
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+
+    if (!line) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    if (/^---+$/.test(line)) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'divider' });
+      return;
+    }
+
+    const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+      blocks.push({
+        type: 'heading',
+        level: headingMatch[1].length,
+        text: headingMatch[2],
+      });
+      return;
+    }
+
+    if (line.startsWith('> ')) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'quote', text: line.slice(2) });
+      return;
+    }
+
+    const bulletMatch = line.match(/^[-*]\s+(.+)$/);
+    if (bulletMatch) {
+      flushParagraph();
+      if (!list || list.ordered) {
+        flushList();
+        list = { type: 'list', ordered: false, items: [] };
+      }
+      list.items.push(bulletMatch[1]);
+      return;
+    }
+
+    const orderedMatch = line.match(/^\d+\.\s+(.+)$/);
+    if (orderedMatch) {
+      flushParagraph();
+      if (!list || !list.ordered) {
+        flushList();
+        list = { type: 'list', ordered: true, items: [] };
+      }
+      list.items.push(orderedMatch[1]);
+      return;
+    }
+
+    flushList();
+    paragraph.push(line);
+  });
+
+  flushParagraph();
+  flushList();
+
+  return blocks;
+};
+
+const MarkdownNotes = ({ markdown }) => {
+  const blocks = parseMarkdownBlocks(markdown);
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <div className="space-y-5">
+        {blocks.map((block, index) => {
+          if (block.type === 'heading') {
+            const headingClasses = {
+              1: 'text-3xl font-bold text-slate-950 border-b border-slate-200 pb-3',
+              2: 'text-2xl font-bold text-slate-900 mt-8',
+              3: 'text-xl font-bold text-slate-900 mt-6',
+              4: 'text-lg font-bold text-slate-800 mt-5',
+            };
+            const Tag = `h${Math.min(block.level, 4)}`;
+
+            return (
+              <Tag key={index} className={headingClasses[block.level] || headingClasses[4]}>
+                {parseInlineMarkdown(block.text)}
+              </Tag>
+            );
+          }
+
+          if (block.type === 'paragraph') {
+            return (
+              <p key={index} className="text-base leading-8 text-slate-700">
+                {parseInlineMarkdown(block.text)}
+              </p>
+            );
+          }
+
+          if (block.type === 'quote') {
+            return (
+              <blockquote key={index} className="rounded-lg border-l-4 border-indigo-500 bg-indigo-50 px-4 py-3 text-slate-700">
+                {parseInlineMarkdown(block.text)}
+              </blockquote>
+            );
+          }
+
+          if (block.type === 'divider') {
+            return <hr key={index} className="border-slate-200" />;
+          }
+
+          if (block.type === 'list') {
+            const ListTag = block.ordered ? 'ol' : 'ul';
+
+            return (
+              <ListTag
+                key={index}
+                className={`space-y-3 rounded-lg bg-slate-50 p-4 text-slate-700 ${
+                  block.ordered ? 'list-decimal pl-8' : 'list-disc pl-8'
+                }`}
+              >
+                {block.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="leading-7 marker:font-bold marker:text-indigo-600">
+                    {parseInlineMarkdown(item)}
+                  </li>
+                ))}
+              </ListTag>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    </article>
+  );
+};
 
 const Learn = () => {
   const { courseId } = useParams();
@@ -10,26 +190,27 @@ const Learn = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [debugInfo, setDebugInfo] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [completingLesson, setCompletingLesson] = useState(false);
   
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   
   const apiURL = import.meta.env.VITE_BASE_URL;
   
-  useEffect(() => {
-    loadCourse();
-  }, [courseId]); // Add courseId as dependency
-  
-
-  const loadCourse = async () => {
+  const loadCourse = useCallback(async () => {
     try {
       setLoading(true); // Set loading to true
       setError('');
+      setDebugInfo(null);
       
       // Get token
       const token = localStorage.getItem('token');
+      console.log(token)
       
       // Log everything for debugging
       const requestURL = `${apiURL}/api/courses/${courseId}`; // Full request URL
+      console.log(requestURL);
+      
       console.log('═══════════════════════════════════════════');
       console.log('📚 LOADING COURSE - DEBUG INFO');
       console.log('═══════════════════════════════════════════');
@@ -42,12 +223,7 @@ const Learn = () => {
       console.log('Token exists:', !!token);
       console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
       console.log('═══════════════════════════════════════════');
-      
-      // CRITICAL CHECK: Stop if courseId is undefined
-      if (!courseId || courseId === 'undefined') {
-        throw new Error(`Invalid course ID: "${courseId}". Check your App.jsx route configuration!`);
-      }
-      
+
       // Store debug info in state so we can show it if needed
       setDebugInfo({
         courseId,
@@ -56,8 +232,13 @@ const Learn = () => {
         hasToken: !!token
       });
       
+      // CRITICAL CHECK: Stop if courseId is undefined
+      if (!courseId || courseId === 'undefined') {
+        throw new Error(`Invalid course ID: "${courseId}". Check your App.jsx route configuration!`);
+      }
+
       // Make request
-      const response = await axiosInstance.get(`${apiURL}/api/courses/${courseId}`);
+      const response = await axiosInstance.get(`/api/courses/${courseId}`);
       
       console.log('✅ Response received:', response);
       console.log('Response status:', response.status);
@@ -75,6 +256,7 @@ const Learn = () => {
       }
       
       setCourse(courseData);
+      setCurrentLessonIndex(0);
       
       console.log('✅ Course loaded successfully!');
       console.log('   Title:', courseData.title);
@@ -116,9 +298,22 @@ const Learn = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiURL, courseId, navigate]);
+
+  useEffect(() => {
+    loadCourse();
+  }, [loadCourse]);
   
+  const canOpenLesson = (index) => {
+    return index === 0 || course.lessons[index]?.completed || course.lessons[index - 1]?.completed;
+  };
+
   const goToNextLesson = () => {
+    if (!course.lessons[currentLessonIndex]?.completed) {
+      alert('Complete this lesson first so your course progress can be updated.');
+      return;
+    }
+
     if (currentLessonIndex < course.lessons.length - 1) {
       setCurrentLessonIndex(currentLessonIndex + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,8 +332,91 @@ const Learn = () => {
   };
   
   const jumpToLesson = (index) => {
+    if (!canOpenLesson(index)) {
+      alert('Complete the previous lesson before opening this one.');
+      return;
+    }
+
     setCurrentLessonIndex(index);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const completeCurrentLesson = async () => {
+    try {
+      const currentLesson = course.lessons[currentLessonIndex];
+
+      if (!currentLesson || currentLesson.completed) {
+        goToNextLesson();
+        return;
+      }
+
+      setCompletingLesson(true);
+
+      const response = await axiosInstance.put(
+        `/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
+        {
+          timeSpent: currentLesson.estimatedDuration || 15,
+        }
+      );
+
+      const updatedLesson = response.data.data.lesson;
+      const courseProgress = response.data.data.courseProgress;
+
+      setCourse((previousCourse) => {
+        const updatedLessons = previousCourse.lessons.map((lesson) => {
+          return lesson._id === updatedLesson._id ? { ...lesson, ...updatedLesson } : lesson;
+        });
+
+        return {
+          ...previousCourse,
+          lessons: updatedLessons,
+          progress: courseProgress,
+          status: courseProgress?.percentage === 100 ? 'completed' : previousCourse.status,
+        };
+      });
+
+      if (currentLessonIndex === course.lessons.length - 1) {
+        alert('🎉 Congratulations! You completed the entire course!');
+      } else {
+        setCurrentLessonIndex(currentLessonIndex + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Lesson completion failed:', error);
+      const validationError = error.response?.data?.errors?.[0]?.msg;
+      const serverError = error.response?.data?.error;
+      const message = validationError || serverError || error.response?.data?.message || 'Failed to complete lesson';
+
+      alert(message);
+    } finally {
+      setCompletingLesson(false);
+    }
+  };
+
+  const downloadPdf = async (pdfUrl) => {
+    try {
+      setDownloadingPdf(true);
+
+      const response = await axiosInstance.get(pdfUrl, {
+        responseType: 'blob',
+      });
+
+      const filename = pdfUrl.split('/').pop() || 'lesson-notes.pdf';
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      alert(error.response?.data?.message || 'Failed to download PDF');
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -225,6 +503,9 @@ const Learn = () => {
   
   const isFirstLesson = currentLessonIndex === 0;
   const isLastLesson = currentLessonIndex === totalLessons - 1;
+  const isCurrentLessonCompleted = currentLesson.completed === true;
+  const courseProgress = course.progress?.percentage || 0;
+  const completedLessons = course.progress?.completedLessons || course.lessons.filter((lesson) => lesson.completed).length;
   
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN RENDER
@@ -250,6 +531,18 @@ const Learn = () => {
             <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
               {totalLessons} Lessons
             </span>
+            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+              {completedLessons}/{totalLessons} Complete
+            </span>
+          </div>
+          <div className="mt-5">
+            <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+              <div
+                className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                style={{ width: `${courseProgress}%` }}
+              />
+            </div>
+            <p className="mt-2 text-sm font-medium text-gray-600">{courseProgress}% course progress</p>
           </div>
         </div>
       </div>
@@ -265,21 +558,26 @@ const Learn = () => {
               </h2>
               
               <div className="space-y-2">
-                {course.lessons.map((lesson, index) => (
-                  <div
-                    key={lesson._id || index}
-                    onClick={() => jumpToLesson(index)}
-                    className={`
-                      p-3 rounded-lg cursor-pointer transition-all
-                      ${index === currentLessonIndex 
-                        ? 'bg-indigo-600 text-white shadow-md transform scale-105' 
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:shadow'
-                      }
-                    `}
-                  >
+                {course.lessons.map((lesson, index) => {
+                  const unlocked = canOpenLesson(index);
+
+                  return (
+                    <div
+                      key={lesson._id || index}
+                      onClick={() => jumpToLesson(index)}
+                      className={`
+                        p-3 rounded-lg transition-all
+                        ${index === currentLessonIndex 
+                          ? 'bg-indigo-600 text-white shadow-md transform scale-105' 
+                          : unlocked
+                            ? 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:shadow cursor-pointer'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-70'
+                        }
+                      `}
+                    >
                     <div className="flex items-start gap-3">
                       <span className="font-bold flex-shrink-0 text-lg">
-                        {lesson.completed ? '✓' : index + 1}
+                        {lesson.completed ? '✓' : unlocked ? index + 1 : '🔒'}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm leading-tight">
@@ -288,12 +586,13 @@ const Learn = () => {
                         <p className={`text-xs mt-1 ${
                           index === currentLessonIndex ? 'text-indigo-200' : 'text-gray-500'
                         }`}>
-                          {lesson.estimatedDuration || 15} min
+                          {lesson.completed ? 'Completed' : `${lesson.estimatedDuration || 15} min`}
                         </p>
                       </div>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -310,6 +609,13 @@ const Learn = () => {
                 <p className="text-gray-600 text-lg">
                   Lesson {lessonNumber} of {totalLessons} • {currentLesson.estimatedDuration || 15} minutes
                 </p>
+                <span className={`inline-flex mt-3 px-3 py-1 rounded-full text-sm font-semibold ${
+                  isCurrentLessonCompleted
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {isCurrentLessonCompleted ? '✓ Completed' : 'Not completed yet'}
+                </span>
               </div>
               
               {/* PAGINATION - TOP */}
@@ -334,10 +640,10 @@ const Learn = () => {
                 
                 <button
                   onClick={goToNextLesson}
-                  disabled={isLastLesson}
+                  disabled={isLastLesson || !isCurrentLessonCompleted}
                   className={`
                     px-5 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2
-                    ${isLastLesson 
+                    ${isLastLesson || !isCurrentLessonCompleted
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                       : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
                     }
@@ -381,39 +687,27 @@ const Learn = () => {
               {/* NOTES SECTION */}
               {currentLesson.notes && currentLesson.notes.markdown ? (
                 <div className="mb-8">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                      📝 Study Notes
-                    </h3>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Markdown notes</p>
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        Study Notes
+                      </h3>
+                    </div>
                     
                     {currentLesson.notes.pdfUrl && (
-                      <a
-                        href={`${apiURL}${currentLesson.notes.pdfUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => downloadPdf(currentLesson.notes.pdfUrl)}
+                        disabled={downloadingPdf}
                         className="bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 font-medium shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                       >
-                        📄 Download PDF
-                      </a>
+                        {downloadingPdf ? 'Downloading...' : '📄 Download PDF'}
+                      </button>
                     )}
                   </div>
                   
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    {currentLesson.notes.markdown.split('\n').map((line, index) => {
-                      if (line.startsWith('# ')) {
-                        return <h1 key={index} className="text-3xl font-bold mt-8 mb-4 first:mt-0 text-gray-900">{line.slice(2)}</h1>;
-                      } else if (line.startsWith('## ')) {
-                        return <h2 key={index} className="text-2xl font-bold mt-6 mb-3 text-gray-900">{line.slice(3)}</h2>;
-                      } else if (line.startsWith('### ')) {
-                        return <h3 key={index} className="text-xl font-bold mt-5 mb-2 text-gray-900">{line.slice(4)}</h3>;
-                      } else if (line.startsWith('- ')) {
-                        return <li key={index} className="ml-6 mb-2 text-gray-700 list-disc">{line.slice(2)}</li>;
-                      } else if (line.trim() !== '') {
-                        return <p key={index} className="mb-4 text-gray-700 leading-relaxed">{line}</p>;
-                      }
-                      return null;
-                    })}
-                  </div>
+                  <MarkdownNotes markdown={currentLesson.notes.markdown} />
                 </div>
               ) : (
                 <div className="mb-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
@@ -432,6 +726,57 @@ const Learn = () => {
                   </div>
                 </div>
               )}
+
+              {/* COMPLETE LESSON */}
+              <div className={`rounded-xl border p-6 ${
+                isCurrentLessonCompleted
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-indigo-50 border-indigo-200'
+              }`}>
+                <h3 className={`text-2xl font-bold mb-2 ${
+                  isCurrentLessonCompleted ? 'text-green-900' : 'text-indigo-900'
+                }`}>
+                  {isCurrentLessonCompleted ? '✓ Lesson Completed' : 'Complete This Lesson'}
+                </h3>
+                <p className={isCurrentLessonCompleted ? 'text-green-700' : 'text-indigo-700'}>
+                  {isCurrentLessonCompleted
+                    ? 'Your progress has been saved. You can move to the next lesson.'
+                    : 'Mark this lesson as complete to update your course progress and unlock the next lesson.'}
+                </p>
+
+                <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                  {!isCurrentLessonCompleted && (
+                    <button
+                      type="button"
+                      onClick={completeCurrentLesson}
+                      disabled={completingLesson}
+                      className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-semibold shadow-md hover:shadow-lg transition-all disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                    >
+                      {completingLesson ? 'Saving Progress...' : isLastLesson ? 'Complete Course' : 'Complete & Continue'}
+                    </button>
+                  )}
+
+                  {isCurrentLessonCompleted && !isLastLesson && (
+                    <button
+                      type="button"
+                      onClick={goToNextLesson}
+                      className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-semibold shadow-md hover:shadow-lg transition-all"
+                    >
+                      Next Lesson →
+                    </button>
+                  )}
+
+                  {isCurrentLessonCompleted && isLastLesson && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/dashboard')}
+                      className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 font-semibold shadow-md hover:shadow-lg transition-all"
+                    >
+                      Back to Dashboard
+                    </button>
+                  )}
+                </div>
+              </div>
               
               {/* PAGINATION - BOTTOM */}
               <div className="flex justify-between items-center mt-10 pt-6 border-t-2 border-gray-100">
@@ -455,10 +800,10 @@ const Learn = () => {
                 
                 <button
                   onClick={goToNextLesson}
-                  disabled={isLastLesson}
+                  disabled={isLastLesson || !isCurrentLessonCompleted}
                   className={`
                     px-6 py-3 rounded-lg font-semibold transition-all
-                    ${isLastLesson 
+                    ${isLastLesson || !isCurrentLessonCompleted
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                       : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
                     }

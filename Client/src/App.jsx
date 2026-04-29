@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import Sidebar from './components/Sidebar'
 import { BrowserRouter, Routes, Route} from 'react-router-dom'
 import Dashboard from './Pages/Dashboard'
@@ -21,15 +18,18 @@ function App() {
     <Route path="/Login" element={<Login />} />
     <Route path="/Register" element={<Register />} />
 
-    <Route path="/*" element={<div className="flex gap-10">
+    <Route path="/*" element={<div className="min-h-screen bg-slate-50 lg:flex">
           <Sidebar />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/Learn" element={<Learn />} />
-            <Route path="/Progress" element={<Progress />} />
-            <Route path="/History" element={<History />} />
-            <Route path="/Settings" element={<Settings />} />
-          </Routes>
+          <div className="min-w-0 flex-1 pb-24 lg:pb-0">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/Learn" element={<Learn />} />
+              <Route path="/Learn/:courseId" element={<Learn />} />
+              <Route path="/Progress" element={<Progress />} />
+              <Route path="/History" element={<History />} />
+              <Route path="/Settings" element={<Settings />} />
+            </Routes>
+          </div>
         </div>
       }
     />

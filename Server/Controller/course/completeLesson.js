@@ -28,7 +28,8 @@ const completeLesson = async (req, res) => {
 
     // ── Step 2: Extract data ──────────────────────────────────────────────────
     const { courseId, lessonId } = req.params;
-    const { quizScore, timeSpent = 0 } = req.body;  // timeSpent defaults to 0 if not provided
+    const { quizScore } = req.body;
+    const timeSpent = Number(req.body.timeSpent || 0);
 
     // ── Step 3: Find course ───────────────────────────────────────────────────
     const course = await Course.findOne({
@@ -54,6 +55,7 @@ const completeLesson = async (req, res) => {
     }
 
     // ── Step 5: Mark lesson as completed ──────────────────────────────────────
+    const wasAlreadyCompleted = lesson.completed === true;
     lesson.completed = true;
     
     // Save quiz score if provided
@@ -64,10 +66,18 @@ const completeLesson = async (req, res) => {
     // ── Step 6: Update course progress ────────────────────────────────────────
     // This is an INSTANCE METHOD we defined in Course model
     // It recalculates completedLessons, totalLessons, percentage
+    if (!course.progress) {
+      course.progress = {};
+    }
+
+    if (!course.analytics) {
+      course.analytics = {};
+    }
+
     course.updateProgress();
     
     // Update analytics
-    course.analytics.totalTimeSpent += timeSpent;
+    course.analytics.totalTimeSpent = (course.analytics.totalTimeSpent || 0) + timeSpent;
     course.analytics.lastAccessed = Date.now();
     
     await course.save();
@@ -80,13 +90,16 @@ const completeLesson = async (req, res) => {
       userProgress = new Progress({ userId: req.userId });
     }
 
-    // Add today's activity
-    // This is an INSTANCE METHOD we defined in Progress model
-    userProgress.addActivity(timeSpent || lesson.estimatedDuration, 1);
-    
-    // Update totals
-    userProgress.totalStats.totalLessonsCompleted += 1;
-    userProgress.totalStats.totalLearningTime += timeSpent;
+    if (!wasAlreadyCompleted) {
+      // Add today's activity
+      // This is an INSTANCE METHOD we defined in Progress model
+      const activityTime = timeSpent || lesson.estimatedDuration || 0;
+      userProgress.addActivity(activityTime, 1);
+      
+      // Update totals
+      userProgress.totalStats.totalLessonsCompleted += 1;
+      userProgress.totalStats.totalLearningTime += activityTime;
+    }
 
     // ── Step 8: Track weak areas ──────────────────────────────────────────────
     // If quiz score is below 75%, add to weak areas for review

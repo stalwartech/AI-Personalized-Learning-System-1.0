@@ -16,10 +16,10 @@ const downloadPDF = (req, res) => {
     // Example: /api/courses/notes/pdf/notes_variables_123.pdf
     const { filename } = req.params;
 
-    // Build full file path
-    // __dirname = current directory
-    // ../../pdfs = go up 2 levels, then into pdfs folder
-    const filePath = path.join(__dirname, '../../pdfs', filename);
+    // Build full file path.
+    // PDFgenerator.js saves files in the project-level /pdfs folder.
+    const safeFilename = path.basename(filename);
+    const filePath = path.join(__dirname, '../../../pdfs', safeFilename);
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -31,7 +31,7 @@ const downloadPDF = (req, res) => {
 
     // Send file for download
     // res.download() sends the file and prompts browser to download it
-    res.download(filePath);
+    res.download(filePath, safeFilename);
 
   } catch (error) {
     console.error('Download PDF error:', error);

@@ -144,10 +144,16 @@ const courseSchema = new mongoose.Schema({
   },
   
   // ── EMBEDDED PROGRESS ──
-  progress: progressSchema,
+  progress: {
+    type: progressSchema,
+    default: () => ({})
+  },
   
   // ── EMBEDDED ANALYTICS ──
-  analytics: analyticsSchema
+  analytics: {
+    type: analyticsSchema,
+    default: () => ({})
+  }
   
 }, { timestamps: true }); // Auto-add createdAt and updatedAt
 
@@ -158,6 +164,14 @@ const courseSchema = new mongoose.Schema({
 // Example: course.updateProgress(); await course.save();
 // ─────────────────────────────────────────────────────────────────────────────
 courseSchema.methods.updateProgress = function() {
+  if (!this.progress) {
+    this.progress = {};
+  }
+
+  if (!this.analytics) {
+    this.analytics = {};
+  }
+
   // Count how many lessons are marked as completed
   const completedLessonsCount = this.lessons.filter(lesson => lesson.completed === true).length;
   
