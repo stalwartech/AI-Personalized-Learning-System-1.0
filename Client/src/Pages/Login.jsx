@@ -96,15 +96,21 @@ const LoginForm = () => {
           {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-            <input
-              id="password"
-              type="password"
-              {...register('password')}
-              placeholder="Enter your password"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
+            <div>
+              <input
+                      id="password"
+                      type="password"
+                      {...register('password')}
+                      placeholder="Enter your password"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
+                        errors.password ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              <eye className="w-5 h-5 text-gray-500" />
+              </div>
+            </div>
+      
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
