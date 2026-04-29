@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import * as yup from 'yup';
-import {eye} from 'lucide-react'
+import {Eye} from 'lucide-react'
 
 
 // Validation schema
@@ -107,7 +107,7 @@ const LoginForm = () => {
                       }`}
                     />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <eye className="w-5 h-5 text-gray-500" />
+              <Eye className="w-5 h-5 text-gray-500" />
               </div>
             </div>
       
