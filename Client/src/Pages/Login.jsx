@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import * as yup from 'yup';
-import {Eye} from 'lucide-react'
+import {Eye, EyeOff} from 'lucide-react'
 
 
 // Validation schema
@@ -21,6 +21,7 @@ const schema = yup.object({
 }).required();
 
 const LoginForm = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const navigate = useNavigate()
   const {register,handleSubmit,formState: { errors }} = useForm({resolver: yupResolver(schema),
@@ -32,6 +33,7 @@ const LoginForm = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -57,8 +59,7 @@ const LoginForm = () => {
     finally {
       setIsLoading(false);
     }
-  }
-  ;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -100,7 +101,7 @@ const LoginForm = () => {
               <div>
                 <input
                         id="password"
-                        type="password"
+                        type= {showPassword ? "password" : "text"}
                         {...register('password')}
                         placeholder="Enter your password"
                         className={`w-full px-4 relative py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
@@ -108,8 +109,12 @@ const LoginForm = () => {
                         }`}
                       />
               </div>
-                <div>
-                  <Eye className="w-5 h-5 text-gray-500 absolute right-4 top-4" /> 
+                <div onClick={() => setShowPassword(prev => !prev)}>
+                  {showPassword ? (
+                    <Eye className="w-5 h-5 text-gray-500 absolute right-4 top-4" />
+                  ) : (
+                    <EyeOff className="w-5 h-5 text-gray-500 absolute right-4 top-4" />
+                  )}
                 </div>
             </div>
       

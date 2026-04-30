@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {Eye, EyeOff} from 'lucide-react'
 import axios from 'axios';
 import * as yup from 'yup';
 
@@ -46,30 +47,30 @@ const calculatePasswordStrength = (password) => {
 
   // Determine strength level
   if (strength <= 40) {
-    return { 
-      strength, 
-      text: 'Weak strength', 
+    return {
+      strength,
+      text: 'Weak strength',
       color: 'bg-red-500',
       textColor: 'text-red-600'
     };
   } else if (strength <= 60) {
-    return { 
-      strength, 
-      text: 'Medium strength', 
+    return {
+      strength,
+      text: 'Medium strength',
       color: 'bg-yellow-500',
       textColor: 'text-yellow-600'
     };
   } else if (strength <= 80) {
-    return { 
-      strength, 
-      text: 'Good strength', 
+    return {
+      strength,
+      text: 'Good strength',
       color: 'bg-blue-500',
       textColor: 'text-blue-600'
     };
   } else {
-    return { 
-      strength, 
-      text: 'Strong password', 
+    return {
+      strength,
+      text: 'Strong password',
       color: 'bg-green-500',
       textColor: 'text-green-600'
     };
@@ -88,14 +89,15 @@ const getPasswordRequirements = (password) => {
 };
 
 const Register = () => {
-  const [passwordStrength, setPasswordStrength] = useState({ 
-    strength: 0, 
-    text: '', 
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({
+    strength: 0,
+    text: '',
     color: '',
     textColor: ''
   });
 
-  const {register,handleSubmit,watch,formState: { errors }} = useForm({resolver: yupResolver(schema),defaultValues: {fullName: '',email: '',password: '',agreeToTerms: false}});
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({ resolver: yupResolver(schema), defaultValues: { fullName: '', email: '', password: '', agreeToTerms: false } });
 
   // Watch password field for strength calculation
   const password = watch('password');
@@ -107,7 +109,7 @@ const Register = () => {
   }, [password]);
 
   const onSubmit = async (data) => {
-    
+
     console.log('Form submitted:', data);
     // Handle your signup logic here
     const baseurl = "http://localhost:3021/register";
@@ -122,7 +124,7 @@ const Register = () => {
 
   // Get current requirements
   const requirements = getPasswordRequirements(password || '');
-  
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -141,7 +143,7 @@ const Register = () => {
           {/* Full Name Field */}
           <div>
             <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <input id="fullName" type="text" {...register('fullName')}placeholder="John Doe" className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}/>
+            <input id="fullName" type="text" {...register('fullName')} placeholder="John Doe" className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`} />
             {errors.fullName && (
               <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
             )}
@@ -157,9 +159,8 @@ const Register = () => {
               type="email"
               {...register('email')}
               placeholder="you@example.com"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {errors.email && (
               <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -168,52 +169,65 @@ const Register = () => {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              {...register('password')}
-              placeholder="Create a strong password"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            
-            {/* Password Strength Indicator */}
-            {password && (
-              <div className="mt-2">
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                  <div 
-                    className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
-                    style={{ width: `${passwordStrength.strength}%` }}
-                  ></div>
-                </div>
-                {/* Strength Text */}
-                <p className={`text-xs ${passwordStrength.textColor} font-medium mb-2`}>
-                  {passwordStrength.text}
-                </p>
-
-                {/* Requirements Checklist */}
-                {passwordStrength.strength < 100 && (
-                  <div className="space-y-1">
-                    {requirements.map((req, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <span className={`text-xs ${req.met ? 'text-green-600' : 'text-gray-400'}`}>
-                          {req.met ? '✓' : '○'}
-                        </span>
-                        <span className={`text-xs ${req.met ? 'text-green-600 line-through' : 'text-gray-600'}`}>
-                          {req.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <div className='relative'>
+              <div>
+                <input
+                  id="password"
+                  type={showPassword ? "password" : "text"}
+                  {...register('password')}
+                  placeholder="Enter your password"
+                  className={`w-full px-4 relative py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                />
+              </div>
+              <div onClick={() => setShowPassword(prev => !prev)}>
+                {showPassword ? (
+                  <Eye className="w-5 h-5 text-gray-500 absolute right-4 top-4" />
+                ) : (
+                  <EyeOff className="w-5 h-5 text-gray-500 absolute right-4 top-4" />
                 )}
               </div>
+            </div>
+
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
-            
+          </div>
+
+          {/* Password Strength Indicator */}
+          {password && (
+            <div className="mt-2">
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                  style={{ width: `${passwordStrength.strength}%` }}
+                ></div>
+              </div>
+              {/* Strength Text */}
+              <p className={`text-xs ${passwordStrength.textColor} font-medium mb-2`}>
+                {passwordStrength.text}
+              </p>
+
+              {/* Requirements Checklist */}
+              {passwordStrength.strength < 100 && (
+                <div className="space-y-1">
+                  {requirements.map((req, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <span className={`text-xs ${req.met ? 'text-green-600' : 'text-gray-400'}`}>
+                        {req.met ? '✓' : '○'}
+                      </span>
+                      <span className={`text-xs ${req.met ? 'text-green-600 line-through' : 'text-gray-600'}`}>
+                        {req.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div>
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
@@ -226,9 +240,8 @@ const Register = () => {
                 id="agreeToTerms"
                 type="checkbox"
                 {...register('agreeToTerms')}
-                className={`w-4 h-4 mt-1 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 ${
-                  errors.agreeToTerms ? 'border-red-500' : ''
-                }`}
+                className={`w-4 h-4 mt-1 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 ${errors.agreeToTerms ? 'border-red-500' : ''
+                  }`}
               />
               <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-700">
                 I agree to the{' '}
@@ -255,6 +268,7 @@ const Register = () => {
             </a>
           </p>
         </form>
+
       </div>
     </div>
   );
