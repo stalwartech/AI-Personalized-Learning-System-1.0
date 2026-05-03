@@ -31,9 +31,9 @@ const starterTopics = [
   'Data analysis with Python',
   'Digital marketing',
 ]
- const courseSuggestionsDatabase = {
+ const courseSuggestionsDatabase = [
     // Programming Languages
-    'JavaScript': [
+  
       'JavaScript for Web Development',
       'JavaScript for Automation',
       'JavaScript ES6 Modern Features',
@@ -42,167 +42,8 @@ const starterTopics = [
       'JavaScript Testing with Jest',
       'JavaScript Design Patterns',
       'JavaScript Node.js Backend Development'
-    ],
-    'Python': [
-      'Python for Data Science',
-      'Python for Web Development with Django',
-      'Python for Automation',
-      'Python Machine Learning',
-      'Python Data Analysis with Pandas',
-      'Python Web Scraping',
-      'Python Game Development',
-      'Python API Development with Flask'
-    ],
-    'Java': [
-      'Java for Enterprise Applications',
-      'Java Spring Boot Development',
-      'Java Android App Development',
-      'Java Object-Oriented Programming',
-      'Java Microservices Architecture',
-      'Java Data Structures and Algorithms'
-    ],
-    'C++': [
-      'C++ Game Development',
-      'C++ System Programming',
-      'C++ Object-Oriented Programming',
-      'C++ Data Structures'
-    ],
-    'TypeScript': [
-      'TypeScript for React Development',
-      'TypeScript Fundamentals',
-      'TypeScript Backend with Node.js',
-      'TypeScript Advanced Types'
-    ],
     
-    // Web Development
-    'React': [
-      'React Frontend Development',
-      'React Hooks and State Management',
-      'React with TypeScript',
-      'React Native Mobile Apps',
-      'React Performance Optimization',
-      'React Testing Library'
-    ],
-    'Vue': [
-      'Vue.js Frontend Development',
-      'Vue 3 Composition API',
-      'Vue with TypeScript',
-      'Nuxt.js Framework'
-    ],
-    'Angular': [
-      'Angular Frontend Development',
-      'Angular Enterprise Applications',
-      'Angular with TypeScript',
-      'Angular RxJS Reactive Programming'
-    ],
-    'HTML': [
-      'HTML5 Fundamentals',
-      'HTML5 Semantic Markup',
-      'HTML5 Forms and Validation',
-      'HTML5 Canvas and Graphics'
-    ],
-    'CSS': [
-      'CSS3 Styling and Layouts',
-      'CSS Flexbox and Grid',
-      'CSS Animations',
-      'CSS Responsive Design',
-      'CSS Tailwind Framework'
-    ],
-    
-    // Backend & Databases
-    'Node': [
-      'Node.js Backend Development',
-      'Node.js Express API Development',
-      'Node.js Microservices',
-      'Node.js Real-time with Socket.io'
-    ],
-    'MongoDB': [
-      'MongoDB Database Fundamentals',
-      'MongoDB with Node.js',
-      'MongoDB Aggregation Pipeline',
-      'MongoDB Schema Design'
-    ],
-    'SQL': [
-      'SQL Database Fundamentals',
-      'SQL Advanced Queries',
-      'SQL Performance Optimization',
-      'PostgreSQL Development'
-    ],
-    
-    // Mobile Development
-    'Android': [
-      'Android App Development with Kotlin',
-      'Android App Development with Java',
-      'Android Jetpack Compose',
-      'Android Material Design'
-    ],
-    'iOS': [
-      'iOS App Development with Swift',
-      'iOS SwiftUI Development',
-      'iOS Core Data',
-      'iOS App Store Publishing'
-    ],
-    'Flutter': [
-      'Flutter Mobile App Development',
-      'Flutter Cross-Platform Apps',
-      'Flutter State Management',
-      'Flutter Firebase Integration'
-    ],
-    
-    // Data & AI
-    'Data Science': [
-      'Data Science with Python',
-      'Data Science Statistics',
-      'Data Science Machine Learning',
-      'Data Science Visualization'
-    ],
-    'Machine Learning': [
-      'Machine Learning Fundamentals',
-      'Machine Learning with Python',
-      'Machine Learning Deep Learning',
-      'Machine Learning TensorFlow'
-    ],
-    'AI': [
-      'Artificial Intelligence Fundamentals',
-      'AI Natural Language Processing',
-      'AI Computer Vision',
-      'AI ChatGPT and LLMs'
-    ],
-    
-    // Business & Marketing
-    'Digital Marketing': [
-      'Digital Marketing Fundamentals',
-      'Digital Marketing SEO',
-      'Digital Marketing Social Media',
-      'Digital Marketing Analytics'
-    ],
-    'Excel': [
-      'Excel Data Analysis',
-      'Excel Formulas and Functions',
-      'Excel Pivot Tables',
-      'Excel VBA Automation'
-    ],
-    'Business': [
-      'Business Management',
-      'Business Analytics',
-      'Business Strategy',
-      'Business Communication'
-    ],
-    
-    // Design
-    'UI/UX': [
-      'UI/UX Design Fundamentals',
-      'UI/UX Figma Design',
-      'UI/UX User Research',
-      'UI/UX Prototyping'
-    ],
-    'Photoshop': [
-      'Photoshop Photo Editing',
-      'Photoshop Graphic Design',
-      'Photoshop Digital Art',
-      'Photoshop UI Design'
-    ]
-  };
+ ];
 
 const Dashboard = () => {
   const navigate = useNavigate()

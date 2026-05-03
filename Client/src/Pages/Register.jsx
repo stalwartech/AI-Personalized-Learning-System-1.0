@@ -112,7 +112,9 @@ const Register = () => {
 
     console.log('Form submitted:', data);
     // Handle your signup logic here
-    const baseurl = "http://localhost:3021/register";
+    const baseurl = `${VITE_BASE_URL}`+"/register";
+    console.log(baseurl);
+    
     try {
       const response = await axios.post(baseurl, data);
       console.log(response);

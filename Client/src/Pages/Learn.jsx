@@ -473,7 +473,7 @@ const Learn = () => {
           
           <div className="flex gap-3">
             <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium"
             >
               ← Back to Dashboard
@@ -517,7 +517,7 @@ const Learn = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/')}
             className="text-indigo-600 hover:text-indigo-800 font-medium mb-3 flex items-center gap-2"
           >
             ← Back to Dashboard
@@ -769,7 +769,7 @@ const Learn = () => {
                   {isCurrentLessonCompleted && isLastLesson && (
                     <button
                       type="button"
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => navigate('/')}
                       className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 font-semibold shadow-md hover:shadow-lg transition-all"
                     >
                       Back to Dashboard

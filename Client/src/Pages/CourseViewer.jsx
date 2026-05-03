@@ -93,7 +93,7 @@ const CourseViewer = () => {
     } catch (error) {
       console.error('❌ Error loading course:', error);
       alert('Failed to load course. Redirecting to dashboard...');
-      navigate('/dashboard');
+      navigate('/');
     } finally {
       setLoading(false);
     }
@@ -289,7 +289,7 @@ const CourseViewer = () => {
         {/* Course Info */}
         <div className="course-info">
           <button 
-            onClick={() => navigate('/dashboard')} 
+            onClick={() => navigate('/')} 
             className="btn-back"
           >
             ← Back to Dashboard
