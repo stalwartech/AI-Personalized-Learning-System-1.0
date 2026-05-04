@@ -5,7 +5,7 @@ const authMiddleware = require("../Middleware/authMiddleware");
 
 // router.use(authMiddleware);
 
-router.post('/Register', Register) // Working perfectly
-router.post("/Login", Login) // Working perfectly
+router.post('/register', Register) // Working perfectly
+router.post("/login", Login) // Working perfectly
 
 module.exports = router
