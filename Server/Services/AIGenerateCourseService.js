@@ -21,13 +21,11 @@ const FREE_MODELS = [
   'microsoft/phi-3-mini-128k-instruct:free',
 ];
 
-/**
- * Generate notes using OpenRouter with model fallback chain
- */
+/** * Generate notes using OpenRouter with model fallback chain */
 async function generateNotesWithOpenRouter(prompt) {
   for (const model of FREE_MODELS) {
     try {
-      console.log(`🔵 Trying OpenRouter model: ${model}`);
+      console.log(`Trying OpenRouter model: ${model}`);
 
       const response = await axios.post(
         OPENROUTER_URL,
