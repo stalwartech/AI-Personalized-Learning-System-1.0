@@ -37,7 +37,7 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    const baseUrl = "http://localhost:3021/login";
+    const baseUrl = `${import.meta.env.VITE_BASE_URL}+/login`;
     console.log('Form submitted:', data);
     // Handle your login logic here
     try {
