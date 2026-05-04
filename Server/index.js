@@ -24,7 +24,7 @@ const authRoute = require("./Route/authRoute")
 
 // Testing the route
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('Backend Service Working Perfectly!');
 });
 
 // Working with the auth Route 
