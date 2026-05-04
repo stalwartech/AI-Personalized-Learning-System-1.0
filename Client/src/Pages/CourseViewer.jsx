@@ -77,7 +77,7 @@ const CourseViewer = () => {
       
       // Send GET request to backend
       const response = await axios.get(
-        `http://localhost:5000/api/courses/${courseId}`,
+        `${import.meta.env.VITE_API_URL}/api/courses/${courseId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -176,7 +176,7 @@ const CourseViewer = () => {
       
       // Send request to backend to save video choice
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/lessons/${currentLesson._id}/video`,
+        `${import.meta.env.VITE_API_URL}/api/courses/${courseId}/lessons/${currentLesson._id}/video`,
         { videoId: videoId },
         {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -217,7 +217,7 @@ const CourseViewer = () => {
       
       // Send completion request to backend
       await axios.put(
-        `http://localhost:5000/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
+        `${import.meta.env.VITE_BASE_URL}/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
         data,
         {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -470,7 +470,7 @@ const CourseViewer = () => {
                 <h3>Study Notes</h3>
                 {currentLesson.notes.pdfUrl && (
                   <a 
-                    href={`http://localhost:5000${currentLesson.notes.pdfUrl}`}
+                    href={`${import.meta.env.VITE_BASE_URL}${currentLesson.notes.pdfUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-download-pdf"
