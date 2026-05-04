@@ -6,7 +6,7 @@ const cors = require('cors');
 dotenv.config();
 
 app.use(cors({
-  origin: '${import.meta.env.VITE_BASE_URL}'
+  origin: `https://ai-learning-sq68.onrender.com/`
 }));
 
 const Port = process.env.PORT || 5000;
@@ -28,8 +28,7 @@ app.get('/', (req, res) => {
 });
 
 // Working with the auth Route 
-app.use("/", authRoute); //Register 
-app.use("/", authRoute); //Login
+app.use("/", authRoute); //Logun and Register 
 
 // Routes
 // app.use('/api/auth',     require('./routes/AuthRoutes'));
