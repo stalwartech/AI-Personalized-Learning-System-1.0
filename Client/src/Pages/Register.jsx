@@ -112,7 +112,7 @@ const Register = () => {
 
     console.log('Form submitted:', data);
     // Handle your signup logic here
-    const baseurl = `${import.meta.env.VITE_BASE_URL}+/register`;
+    const baseurl = `${import.meta.env.VITE_BASE_URL}/register`;
     console.log(baseurl);
     
     try {
