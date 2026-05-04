@@ -6,7 +6,7 @@ const cors = require('cors');
 dotenv.config();
 
 app.use(cors({
-  origin: `https://ai-learning-sq68.onrender.com/`
+  origin: `https://ai-personalized-learning-system-1-0-ruby.vercel.app/`
 }));
 
 const Port = process.env.PORT || 5000;
