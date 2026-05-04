@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../Pages/coursePage.css";
+import axiosInstance from "../../services/axiosConfig";
 
 
 // ─── Inline Markdown → HTML renderer (no external library needed) ─────────────
@@ -86,13 +87,8 @@ export default function CoursePage() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await fetch(`/api/courses/${courseId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        if (!res.ok) throw new Error("Course not found");
-        const data = await res.json();
+        const response = await axiosInstance.get(`/api/courses/${courseId}`);
+        const data = response.data;
         const courseData = data.data?.course || data.course || data;
         setCourse(courseData);
 
@@ -134,14 +130,10 @@ export default function CoursePage() {
     if (isCompleted || markingComplete) return;
     setMarkingComplete(true);
     try {
-      // PATCH /api/courses/:courseId/lessons/:lessonIndex/complete
-      await fetch(`/api/courses/${courseId}/lessons/${currentIndex}/complete`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
+      await axiosInstance.patch(
+        `/api/courses/${courseId}/lessons/${lesson._id}/complete`,
+        { timeSpent: lesson.estimatedDuration || 15 }
+      );
       const next = new Set([...completedSet, currentIndex]);
       setCompletedSet(next);
       if (next.size === totalLessons) {

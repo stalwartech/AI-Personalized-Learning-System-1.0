@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../services/axiosConfig';
 // import './CourseViewer.css';
 
 /**
@@ -54,6 +54,7 @@ const CourseViewer = () => {
   
   // Quiz score input
   const [quizScore, setQuizScore] = useState('');
+  const apiBaseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || '';
 
   // ──────────────────────────────────────────────────────────────────────────
   // LOAD COURSE ON PAGE LOAD
@@ -72,16 +73,8 @@ const CourseViewer = () => {
     try {
       setLoading(true);
       
-      // Get JWT token
-      const token = localStorage.getItem('token');
-      
       // Send GET request to backend
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/courses/${courseId}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
+      const response = await axiosInstance.get(`/api/courses/${courseId}`);
       
       // Save course data
       const courseData = response.data.data.course;
@@ -171,16 +164,12 @@ const CourseViewer = () => {
    */
   const handleSelectVideo = async (videoId) => {
     try {
-      const token = localStorage.getItem('token');
       const currentLesson = course.lessons[currentLessonIndex];
       
       // Send request to backend to save video choice
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/courses/${courseId}/lessons/${currentLesson._id}/video`,
-        { videoId: videoId },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+      await axiosInstance.put(
+        `/api/courses/${courseId}/lessons/${currentLesson._id}/video`,
+        { videoId: videoId }
       );
       
       // Reload course to get updated data
@@ -202,7 +191,6 @@ const CourseViewer = () => {
    */
   const handleCompleteLesson = async () => {
     try {
-      const token = localStorage.getItem('token');
       const currentLesson = course.lessons[currentLessonIndex];
       
       // Prepare data to send
@@ -216,12 +204,9 @@ const CourseViewer = () => {
       }
       
       // Send completion request to backend
-      await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
-        data,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+      await axiosInstance.put(
+        `/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
+        data
       );
       
       console.log('✅ Lesson marked as complete!');
@@ -470,7 +455,7 @@ const CourseViewer = () => {
                 <h3>Study Notes</h3>
                 {currentLesson.notes.pdfUrl && (
                   <a 
-                    href={`${import.meta.env.VITE_BASE_URL}${currentLesson.notes.pdfUrl}`}
+                    href={`${apiBaseUrl}${currentLesson.notes.pdfUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-download-pdf"

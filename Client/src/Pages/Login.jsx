@@ -2,9 +2,9 @@ import {React, useState} from 'react';
 import {useNavigate} from 'react-router-dom'
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
 import * as yup from 'yup';
 import {Eye, EyeOff} from 'lucide-react'
+import axiosInstance from '../../services/axiosConfig';
 
 
 // Validation schema
@@ -37,11 +37,10 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    const baseUrl = `${import.meta.env.VITE_BASE_URL}/login`;
     console.log('Form submitted:', data);
     // Handle your login logic here
     try {
-      const response = await axios.post(baseUrl, data);
+      const response = await axiosInstance.post('/api/auth/login', data);
       console.log(response);
       
       if(response.status === 200){

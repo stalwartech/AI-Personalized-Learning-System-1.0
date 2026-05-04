@@ -45,5 +45,6 @@ router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVi
 
 // Mark lesson as completed
 router.put('/:courseId/lessons/:lessonId/complete', auth, completeLessonValidation, completeLesson);
+router.patch('/:courseId/lessons/:lessonId/complete', auth, completeLessonValidation, completeLesson);
 
 module.exports = router;

@@ -15,8 +15,8 @@ function App() {
    <BrowserRouter>
   <Routes>
 
-    <Route path="/Login" element={<Login />} />
-    <Route path="/Register" element={<Register />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
 
     <Route path="/*" element={<div className="min-h-screen bg-slate-50 lg:flex">
           <Sidebar />

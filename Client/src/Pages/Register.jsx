@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {Eye, EyeOff} from 'lucide-react'
-import axios from 'axios';
 import * as yup from 'yup';
+import axiosInstance from '../../services/axiosConfig';
 
 // Validation schema
 const schema = yup.object({
@@ -112,11 +112,8 @@ const Register = () => {
 
     console.log('Form submitted:', data);
     // Handle your signup logic here
-    const baseurl = `${import.meta.env.VITE_BASE_URL}/register`;
-    console.log(baseurl);
-    
     try {
-      const response = await axios.post(baseurl, data);
+      const response = await axiosInstance.post('/api/auth/register', data);
       console.log(response);
       alert('Registration successful!');
     } catch (error) {
