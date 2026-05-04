@@ -6,7 +6,7 @@ const cors = require('cors');
 dotenv.config();
 
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: '${import.meta.env.VITE_BASE_URL}'
 }));
 
 const Port = process.env.PORT || 5000;
