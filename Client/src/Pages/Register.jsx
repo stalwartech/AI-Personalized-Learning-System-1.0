@@ -116,6 +116,7 @@ const Register = () => {
       const response = await axiosInstance.post('/api/auth/register', data);
       console.log(response);
       alert('Registration successful!');
+      navigate('/login');
     } catch (error) {
       console.error(error);
     }
