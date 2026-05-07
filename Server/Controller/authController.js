@@ -46,7 +46,7 @@ const Login = async(req, res) => {
         }
 
         // Generate a token 
-        const token = jwt.sign({id: User._id}, process.env.SECRET_KEY, { expiresIn: "1d" });   
+        const token = jwt.sign({id: User._id, premium: User.isPremium}, process.env.SECRET_KEY, { expiresIn: "1d" });   
 
         // If they match then return the user details
         res.status(200).json({User, token});
