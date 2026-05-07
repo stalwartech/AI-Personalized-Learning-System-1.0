@@ -10,7 +10,7 @@ const completeLesson = require("../Controller/course/completeLesson");
 const deleteCourse = require("../Controller/course/deleteCourseController");
 const downloadPDF = require("../Controller/course/downloadPDFController");
 
-/** * COURSE ROUTES* All course-related endpoints */
+/** * COURSE ROUTES* All course-relate endpoints */
 // ─── Validation Rules ─────────────────────────────────────────────────────────
 const generateValidation = [
   body('query').trim().notEmpty().withMessage('Search query is required'),
