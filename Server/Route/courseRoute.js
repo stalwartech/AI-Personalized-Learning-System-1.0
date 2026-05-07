@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
 const auth = require('../Middleware/authMiddleware');
+const courseMiddleware = require("../Middleware/courseLimit")
 const generateCourse = require("../Controller/course/generateCourse");
 const getCourseHistory = require("../Controller/course/getCourseHistory");
 const getSingleCourse = require("../Controller/course/getSingleCourse");
