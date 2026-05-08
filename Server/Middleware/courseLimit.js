@@ -17,7 +17,7 @@ const courseMiddleware = async (req, res, next) => {
 
     const courseCount = await Course.countDocuments({ userId: req.userId });
 
-    if (courseCount >= FREE_COURSE_LIMIT) {
+    if (courseCount >= FREE_COURSE_LIMIT) { //
       return res.status(403).json({
         success: false,
         message: `Free users can generate up to ${FREE_COURSE_LIMIT} courses. Upgrade to premium to generate more courses.`,
