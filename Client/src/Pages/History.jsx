@@ -13,6 +13,7 @@ import {
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../services/axiosConfig'
+import ConfirmationPopup from '../components/ConfirmationPopUp'
 
 const filters = [
   { label: 'All', value: '' },
@@ -28,6 +29,7 @@ const History = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [deletingCourseId, setDeletingCourseId] = useState('')
+  const [courseToDelete, setCourseToDelete] = useState(null)
   const [error, setError] = useState('')
 
   const formatDate = (date) => {
@@ -85,35 +87,29 @@ const History = () => {
     return error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || fallback
   }
 
-  const deleteCourse = async (course) => {
-    const password = window.prompt(`Enter your password to delete "${course.title}"`)
-
-    if (password === null) return
-
-    if (!password.trim()) {
-      setError('Enter your password to delete this course')
-      return
-    }
-
-    const confirmed = window.confirm('This will permanently delete this course. Continue?')
-    if (!confirmed) return
-
+  const deleteCourse = async (password) => {
+    if (!courseToDelete) return
+    
     try {
-      setDeletingCourseId(course._id)
+      setDeletingCourseId(courseToDelete._id)
       setError('')
 
-      const response = await axiosInstance.delete(`/api/courses/${course._id}`, {
+      const response = await axiosInstance.delete(`/api/courses/${courseToDelete._id}`, {
         data: { password },
       })
 
       if (response.data?.success) {
-        setCourses((currentCourses) => currentCourses.filter((currentCourse) => currentCourse._id !== course._id))
-      } else {
-        setError(response.data?.message || 'Failed to delete course')
+        setCourses((currentCourses) => currentCourses.filter((currentCourse) => currentCourse._id !== courseToDelete._id))
+        setCourseToDelete(null)
+        return
       }
+
+      throw new Error(response.data?.message || 'Failed to delete course')
     } catch (error) {
       console.log(error)
-      setError(getErrorMessage(error, 'Failed to delete course'))
+      const message = getErrorMessage(error, 'Failed to delete course')
+      setError(message)
+      throw new Error(message)
     } finally {
       setDeletingCourseId('')
     }
@@ -279,9 +275,18 @@ const History = () => {
                         <PlayCircle size={17} />
                         {progress > 0 ? 'Continue' : 'Start'}
                       </button>
+                      {course.status === 'completed' && (
+                        <button
+                          type='button'
+                          onClick={() => navigate(`/Quiz/${course._id}`)}
+                          className='inline-flex items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-bold text-green-700 transition hover:bg-green-100'
+                        >
+                          Quiz
+                        </button>
+                      )}
                       <button
                         type='button'
-                        onClick={() => deleteCourse(course)}
+                        onClick={() => setCourseToDelete(course)}
                         disabled={deletingCourseId === course._id}
                         className='inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600'
                         aria-label={`Delete ${course.title}`}
@@ -295,6 +300,20 @@ const History = () => {
             })}
           </div>
         )}
+
+        <ConfirmationPopup
+          open={Boolean(courseToDelete)}
+          onClose={() => setCourseToDelete(null)}
+          onConfirm={deleteCourse}
+          variant='danger'
+          title='Delete course?'
+          message={`This will permanently delete "${courseToDelete?.title || 'this course'}". Enter your password to continue.`}
+          confirmLabel='Delete course'
+          cancelLabel='Cancel'
+          requirePassword
+          passwordLabel='Confirm password'
+          passwordPlaceholder='Enter your password'
+        />
       </div>
     </main>
   )

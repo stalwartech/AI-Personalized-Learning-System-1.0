@@ -66,6 +66,7 @@ app.use("/", authRoute); // Backward compatibility for existing /login and /regi
 app.use('/api/courses',  require('./Route/courseRoute'));
 app.use('/api/progress', require("./Route/progressRoute"));
 app.use('/api/settings', require('./Route/settingsRoute'));
+app.use('/api/quizzes', require('./Route/quizRoute'));
 
 app.use((req, res) => {
     res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });

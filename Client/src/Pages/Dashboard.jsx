@@ -18,6 +18,8 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axiosInstance from '../../services/axiosConfig'
+import Alert from '../components/Alert'
+import ConfirmationPopup from '../components/ConfirmationPopUp'
 
 const difficultyOptions = [
   { label: 'Beginner', value: 'beginner' },
@@ -63,7 +65,10 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [upgradeRequired, setUpgradeRequired] = useState(false)
+  const [limitPopupOpen, setLimitPopupOpen] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const getDashboardData = useCallback(async () => {
     try {
@@ -90,6 +95,16 @@ const Dashboard = () => {
   useEffect(() => {
     getDashboardData()
   }, [getDashboardData])
+
+  useEffect(() => {
+    const authSuccessMessage = sessionStorage.getItem('authSuccessMessage')
+
+    if (authSuccessMessage) {
+      setSuccessMessage(authSuccessMessage)
+      sessionStorage.removeItem('authSuccessMessage')
+      setTimeout(() => setSuccessMessage(''), 4000)
+    }
+  }, [])
 
   const continueCourse = useMemo(() => {
     return courses.find((course) => course.status === 'in-progress') || courses[0]
@@ -132,6 +147,8 @@ const Dashboard = () => {
     if (!searchQuery.trim()) return
 
     setError('')
+    setUpgradeRequired(false)
+    setLimitPopupOpen(false)
     setGenerating(true)
 
     try {
@@ -147,6 +164,9 @@ const Dashboard = () => {
 
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message
+        const shouldUpgrade = Boolean(error.response.data.upgradeRequired)
+        setUpgradeRequired(shouldUpgrade)
+        setLimitPopupOpen(shouldUpgrade)
       } else if (error.message === 'timeout of 120000ms exceeded') {
         errorMessage = 'Course generation timed out. Please try again.'
       } else if (!error.response) {
@@ -172,6 +192,18 @@ const Dashboard = () => {
   return (
     <main className='min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8'>
       <div className='mx-auto flex max-w-7xl flex-col gap-6'>
+        <Alert type='success' message={successMessage} onClose={() => setSuccessMessage('')} />
+        <Alert
+          type={upgradeRequired ? 'info' : 'error'}
+          message={upgradeRequired ? '' : error}
+          actionLabel={upgradeRequired ? 'View Premium' : undefined}
+          onAction={upgradeRequired ? () => navigate('/Premium') : undefined}
+          onClose={() => {
+            setError('')
+            setUpgradeRequired(false)
+          }}
+        />
+
         <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
           <div>
             <p className='text-sm font-semibold text-[#4f46e5]'>Dashboard</p>
@@ -296,12 +328,6 @@ const Dashboard = () => {
                   </button>
                 ))}
               </div>
-
-              {error && (
-                <div className='mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700'>
-                  {error}
-                </div>
-              )}
 
               {generating && (
                 <div className='mt-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3'>
@@ -447,6 +473,17 @@ const Dashboard = () => {
             </div>
           </DashboardPanel>
         </section>
+
+        <ConfirmationPopup
+          open={limitPopupOpen}
+          onClose={() => setLimitPopupOpen(false)}
+          onConfirm={() => navigate('/Premium')}
+          variant='info'
+          title='Free course limit reached'
+          message={error || 'Free users can generate a limited number of courses. Upgrade to premium to keep creating personalized courses.'}
+          confirmLabel='View Premium'
+          cancelLabel='Not now'
+        />
       </div>
     </main>
   )

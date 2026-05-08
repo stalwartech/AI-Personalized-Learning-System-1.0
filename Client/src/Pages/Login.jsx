@@ -1,10 +1,11 @@
-import {React, useState} from 'react';
+import {React, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom'
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import {Eye, EyeOff} from 'lucide-react'
 import axiosInstance from '../../services/axiosConfig';
+import Alert from '../components/Alert';
 
 
 // Validation schema
@@ -23,6 +24,7 @@ const schema = yup.object({
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate()
   const {register,handleSubmit,formState: { errors }} = useForm({resolver: yupResolver(schema),
     defaultValues: {
@@ -33,6 +35,16 @@ const LoginForm = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const accountDeletedMessage = sessionStorage.getItem('accountDeletedMessage');
+
+    if (accountDeletedMessage) {
+      setSuccessMessage(accountDeletedMessage);
+      sessionStorage.removeItem('accountDeletedMessage');
+      setTimeout(() => setSuccessMessage(''), 4000);
+    }
+  }, []);
 
 
   const onSubmit = async (data) => {
@@ -45,12 +57,12 @@ const LoginForm = () => {
       
       if(response.status === 200){
         console.log(response);
-        alert('Login successful!');
-        navigate('/');
         localStorage.setItem("token", response.data.token)
+        sessionStorage.setItem('authSuccessMessage', 'Login successful! Welcome back.')
+        navigate('/');
       }
  
-    } catch (error) {
+    } catch {
       // alert(error.response?.data?.message || "Invalid email or password");
       // setLoginError(error.response?.data?.message || "Invalid email or password");
       setLoginError("Invalid email or password");
@@ -72,7 +84,10 @@ const LoginForm = () => {
           <p className="text-gray-500">Welcome back! Sign in to continue learning</p>
         </div>
 
-        {loginError && <p className="error text-red-600 mb-4 text-center">{loginError}</p>}
+        <div className="mb-4">
+          <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
+          {loginError && <p className="error text-red-600 mt-3 text-center">{loginError}</p>}
+        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

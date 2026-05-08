@@ -376,7 +376,7 @@ const Learn = () => {
       });
 
       if (currentLessonIndex === course.lessons.length - 1) {
-        alert('🎉 Congratulations! You completed the entire course!');
+        navigate(`/Quiz/${courseId}`);
       } else {
         setCurrentLessonIndex(currentLessonIndex + 1);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -767,13 +767,22 @@ const Learn = () => {
                   )}
 
                   {isCurrentLessonCompleted && isLastLesson && (
-                    <button
-                      type="button"
-                      onClick={() => navigate('/')}
-                      className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 font-semibold shadow-md hover:shadow-lg transition-all"
-                    >
-                      Back to Dashboard
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/Quiz/${courseId}`)}
+                        className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 font-semibold shadow-md hover:shadow-lg transition-all"
+                      >
+                        Take Course Quiz
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className="bg-slate-700 text-white px-6 py-3 rounded-lg hover:bg-slate-800 font-semibold shadow-md hover:shadow-lg transition-all"
+                      >
+                        Back to Dashboard
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

@@ -126,6 +126,7 @@ const Register = () => {
         localStorage.setItem('token', token);
       }
 
+      sessionStorage.setItem('authSuccessMessage', 'Signup successful! Your account is ready.')
       navigate('/');
     } catch (error) {
       console.error(error);

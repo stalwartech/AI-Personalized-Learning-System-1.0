@@ -1,9 +1,11 @@
 import {
   BarChart3,
   BookOpen,
+  Crown,
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  HelpCircle,
   Settings,
 } from 'lucide-react'
 import React from 'react'
@@ -27,6 +29,18 @@ const menuItems = [
     path: '/Progress',
     icon: BarChart3,
     activePaths: ['/Progress'],
+  },
+  {
+    label: 'Quiz',
+    path: '/Quiz',
+    icon: HelpCircle,
+    activePaths: ['/Quiz'],
+  },
+  {
+    label: 'Premium',
+    path: '/Premium',
+    icon: Crown,
+    activePaths: ['/Premium'],
   },
   {
     label: 'Settings',
@@ -100,7 +114,7 @@ const Sidebar = () => {
         </button>
       </header>
 
-      <nav className='fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-slate-200 bg-white px-2 py-2 shadow-lg lg:hidden'>
+      <nav className='fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white px-1 py-2 shadow-lg lg:hidden'>
         {menuItems.map((item) => {
           const Icon = item.icon
           const active = isItemActive(item)

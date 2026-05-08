@@ -1,6 +1,4 @@
 import {
-  AlertTriangle,
-  CheckCircle2,
   Loader2,
   LockKeyhole,
   Mail,
@@ -12,6 +10,8 @@ import {
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import axiosInstance from '../../services/axiosConfig'
+import Alert from '../components/Alert'
+import ConfirmationPopup from '../components/ConfirmationPopUp'
 
 const paceOptions = [
   { label: 'Relaxed', value: 'relaxed', description: 'A lighter pace for steady learning.' },
@@ -30,6 +30,7 @@ const Settings = () => {
   const [profileSaving, setProfileSaving] = useState(false)
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -48,8 +49,6 @@ const Settings = () => {
     newPassword: '',
     confirmPassword: '',
   })
-
-  const [deletePassword, setDeletePassword] = useState('')
 
   useEffect(() => {
     const getProfile = async () => {
@@ -168,32 +167,28 @@ const Settings = () => {
     }
   }
 
-  const deleteAccount = async () => {
-    if (!deletePassword) {
-      setError('Enter your password to delete your account')
-      return
-    }
-
-    const confirmed = window.confirm('This will permanently delete your account, courses, and progress. Continue?')
-    if (!confirmed) return
-
+  const deleteAccount = async (password) => {
     try {
       setDeleteLoading(true)
       setError('')
 
       const response = await axiosInstance.delete('/api/settings/account', {
-        data: { password: deletePassword },
+        data: { password },
       })
 
       if (response.data?.success) {
+        sessionStorage.setItem('accountDeletedMessage', 'Account deleted successfully.')
         localStorage.removeItem('token')
         window.location.href = '/login'
-      } else {
-        setError(response.data?.message || 'Failed to delete account')
+        return
       }
+
+      throw new Error(response.data?.message || 'Failed to delete account')
     } catch (error) {
       console.log(error)
-      setError(getErrorMessage(error, 'Failed to delete account'))
+      const message = getErrorMessage(error, 'Failed to delete account')
+      setError(message)
+      throw new Error(message)
     } finally {
       setDeleteLoading(false)
     }
@@ -223,16 +218,14 @@ const Settings = () => {
           </p>
         </section>
 
-        {(message || error) && (
-          <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm font-semibold ${
-            error
-              ? 'border-red-200 bg-red-50 text-red-700'
-              : 'border-green-200 bg-green-50 text-green-700'
-          }`}>
-            {error ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
-            {error || message}
-          </div>
-        )}
+        <Alert
+          type={error ? 'error' : 'success'}
+          message={error || message}
+          onClose={() => {
+            setError('')
+            setMessage('')
+          }}
+        />
 
         <form onSubmit={updateProfile} className='rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6'>
           <SectionHeader icon={UserRound} title='Profile Information' description='Update your name and email address.' />
@@ -359,18 +352,10 @@ const Settings = () => {
         <section className='rounded-lg border border-red-200 bg-white p-5 shadow-sm sm:p-6'>
           <SectionHeader icon={Trash2} title='Danger Zone' description='Permanently delete your account and learning data.' danger />
 
-          <div className='mt-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end'>
-            <TextField
-              icon={LockKeyhole}
-              type='password'
-              label='Confirm password'
-              value={deletePassword}
-              onChange={setDeletePassword}
-              placeholder='Enter password to delete account'
-            />
+          <div className='mt-6 flex justify-end'>
             <button
               type='button'
-              onClick={deleteAccount}
+              onClick={() => setDeleteModalOpen(true)}
               disabled={deleteLoading}
               className='inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300'
             >
@@ -379,6 +364,20 @@ const Settings = () => {
             </button>
           </div>
         </section>
+
+        <ConfirmationPopup
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={deleteAccount}
+          variant='danger'
+          title='Delete account?'
+          message='This will permanently delete your account, courses, and progress. Enter your password to continue.'
+          confirmLabel='Delete account'
+          cancelLabel='Cancel'
+          requirePassword
+          passwordLabel='Confirm password'
+          passwordPlaceholder='Enter your password'
+        />
       </div>
     </main>
   )

@@ -7,6 +7,8 @@ import Login from './Pages/Login'
 import Register from './Pages/Register'
 import Settings from './Pages/Settings'
 import History from './Pages/History'
+import Premium from './Pages/Premium'
+import Quiz from './Pages/Quiz'
 function App() {
 
 
@@ -27,6 +29,9 @@ function App() {
               <Route path="/Learn/:courseId" element={<Learn />} />
               <Route path="/Progress" element={<Progress />} />
               <Route path="/History" element={<History />} />
+              <Route path="/Premium" element={<Premium />} />
+              <Route path="/Quiz" element={<Quiz />} />
+              <Route path="/Quiz/:courseId" element={<Quiz />} />
               <Route path="/Settings" element={<Settings />} />
             </Routes>
           </div>
