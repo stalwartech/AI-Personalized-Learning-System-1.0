@@ -1,39 +1,40 @@
-// Implementation of course Limit on a course 
-// Step 1: Set the token to also have premium. 
-// Step 2: Decode the token in the middleware.
-// Step 3: If the user has generated more than two course throw an error that free users has reached its limit upgrade to premium 
-// Step 4: Redirect to the payment page
+const Course = require("../Model/courseModel");
 
-const jwt = require("jsonwebtoken");
-const authModel = require("../Model/authModel");
+const FREE_COURSE_LIMIT = 2;
 
 const courseMiddleware = async (req, res, next) => {
   try {
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
-      const token = req.headers.authorization.split(" ")[1];
-
-      const decoded = jwt.verify(token, process.env.SECRET_KEY); // Verify the token by _id
-
-      if (!decoded) {
-        return res.status(401).json({ message: "Unauthorized token" });
-      }
-
-      const user = await authModel.findById(decoded.premium);
-      // console.log(user);
-      req.user = user;
-      req.userId = user.isPremium
-
-      if(user.isPremium === true){
-          next();
-      }
-      
-    } else {
-      return res.status(401).json({ message: "No token, authorization denied" });
+    if (!req.user || !req.userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required"
+      });
     }
-      
+
+    if (req.user.isPremium) {
+      return next();
+    }
+
+    const courseCount = await Course.countDocuments({ userId: req.userId });
+
+    if (courseCount >= FREE_COURSE_LIMIT) {
+      return res.status(403).json({
+        success: false,
+        message: `Free users can generate up to ${FREE_COURSE_LIMIT} courses. Upgrade to premium to generate more courses.`,
+        limit: FREE_COURSE_LIMIT,
+        coursesGenerated: courseCount,
+        upgradeRequired: true
+      });
+    }
+
+    return next();
   } catch (error) {
-    console.error(error.message);
-    return res.status(401).json({ message: "Not authorized, token failed" });
+    console.error("Course limit error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error checking course limit",
+      error: error.message
+    });
   }
 };
 

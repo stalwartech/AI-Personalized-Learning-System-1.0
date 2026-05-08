@@ -30,7 +30,7 @@ const completeLessonValidation = [
 router.get('/notes/pdf/:filename', downloadPDF);
 
 // Generate new course (main feature!)
-router.post('/generate', auth, generateValidation, generateCourse); // Working perfectly now
+router.post('/generate', auth, courseMiddleware, generateValidation, generateCourse); // Working perfectly now
 
 // Get list of user's courses
 router.get('/history', auth, getCourseHistory); // Working perfectly now
