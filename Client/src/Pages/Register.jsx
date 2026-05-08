@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {Eye, EyeOff} from 'lucide-react'
 import * as yup from 'yup';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
 
 // Validation schema
@@ -89,6 +90,7 @@ const getPasswordRequirements = (password) => {
 };
 
 const Register = () => {
+      const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     strength: 0,
@@ -108,9 +110,12 @@ const Register = () => {
     setPasswordStrength(strength);
   }, [password]);
 
-  const onSubmit = async (data) => {
+  const [isLoading, setIsLoading] = useState(false)
 
+  const onSubmit = async (data) => {
+    
     console.log('Form submitted:', data);
+    setIsLoading(true)
     // Handle your signup logic here
     try {
       const response = await axiosInstance.post('/api/auth/register', data);
@@ -119,6 +124,9 @@ const Register = () => {
       navigate('/login');
     } catch (error) {
       console.error(error);
+    }
+    finally{
+      setIsLoading(false)
     }
   };
 
@@ -256,9 +264,8 @@ const Register = () => {
           </div>
 
           {/* Submit Button */}
-          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-            Create Account
-          </button>
+          <button disabled={isLoading} type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">  {isLoading ? 'Signing up...' : 'Sign up'}</button>
+
 
           {/* Sign In Link */}
           <p className="text-center text-sm text-gray-600">
