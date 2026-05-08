@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 const User = require('../../Model/authModel');
 const Course = require('../../Model/courseModel');
 const Progress = require('../../Model/progressModel');
@@ -11,10 +12,15 @@ const deleteAccount = async (req, res) => {
     }
 
     const user = await User.findById(req.userId);
-    const isMatch = await user.comparePassword(req.body.password);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Account not found' });
+    }
+
+    const isMatch = await bcrypt.compare(req.body.password, user.password);
     
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Incorrect password' });
+      return res.status(400).json({ success: false, message: 'Incorrect password' });
     }
 
     await Promise.all([

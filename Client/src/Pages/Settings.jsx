@@ -181,12 +181,16 @@ const Settings = () => {
       setDeleteLoading(true)
       setError('')
 
-      await axiosInstance.delete('/api/settings/account', {
+      const response = await axiosInstance.delete('/api/settings/account', {
         data: { password: deletePassword },
       })
 
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+      if (response.data?.success) {
+        localStorage.removeItem('token')
+        window.location.href = '/login'
+      } else {
+        setError(response.data?.message || 'Failed to delete account')
+      }
     } catch (error) {
       console.log(error)
       setError(getErrorMessage(error, 'Failed to delete account'))

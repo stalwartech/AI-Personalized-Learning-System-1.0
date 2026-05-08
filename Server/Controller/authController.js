@@ -21,7 +21,10 @@ const Register = async (req, res) => {
             email,
             password: hashPassword,
         });
-        res.status(201).json(user);
+
+        const token = jwt.sign({id: user._id, premium: user.isPremium}, process.env.SECRET_KEY, { expiresIn: "1d" });
+
+        res.status(201).json({User: user, token});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error" , error: error.message});

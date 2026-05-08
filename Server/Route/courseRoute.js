@@ -24,6 +24,10 @@ const completeLessonValidation = [
   body('timeSpent').optional().isInt({ min: 0 }).withMessage('Time spent must be positive')
 ];
 
+const deleteCourseValidation = [
+  body('password').notEmpty().withMessage('Password is required to delete course')
+];
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 // PDF download (public - anyone with link can download)
@@ -39,7 +43,7 @@ router.get('/history', auth, getCourseHistory); // Working perfectly now
 router.get('/:courseId', auth, getSingleCourse); // Working perfectly now
 
 // Delete a course
-router.delete('/:courseId', auth, deleteCourse); // Working Perfectly now
+router.delete('/:courseId', auth, deleteCourseValidation, deleteCourse); // Working Perfectly now
 
 // Select which video to use for a lesson
 router.put('/:courseId/lessons/:lessonId/video', auth, videoValidation, selectVideo); // Neede to be removed

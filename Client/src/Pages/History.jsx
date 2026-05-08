@@ -27,6 +27,7 @@ const History = () => {
   const [activeFilter, setActiveFilter] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+  const [deletingCourseId, setDeletingCourseId] = useState('')
   const [error, setError] = useState('')
 
   const formatDate = (date) => {
@@ -79,6 +80,44 @@ const History = () => {
   useEffect(() => {
     getCourses(activeFilter)
   }, [activeFilter])
+
+  const getErrorMessage = (error, fallback) => {
+    return error.response?.data?.errors?.[0]?.msg || error.response?.data?.message || fallback
+  }
+
+  const deleteCourse = async (course) => {
+    const password = window.prompt(`Enter your password to delete "${course.title}"`)
+
+    if (password === null) return
+
+    if (!password.trim()) {
+      setError('Enter your password to delete this course')
+      return
+    }
+
+    const confirmed = window.confirm('This will permanently delete this course. Continue?')
+    if (!confirmed) return
+
+    try {
+      setDeletingCourseId(course._id)
+      setError('')
+
+      const response = await axiosInstance.delete(`/api/courses/${course._id}`, {
+        data: { password },
+      })
+
+      if (response.data?.success) {
+        setCourses((currentCourses) => currentCourses.filter((currentCourse) => currentCourse._id !== course._id))
+      } else {
+        setError(response.data?.message || 'Failed to delete course')
+      }
+    } catch (error) {
+      console.log(error)
+      setError(getErrorMessage(error, 'Failed to delete course'))
+    } finally {
+      setDeletingCourseId('')
+    }
+  }
 
   const filteredCourses = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -242,10 +281,12 @@ const History = () => {
                       </button>
                       <button
                         type='button'
+                        onClick={() => deleteCourse(course)}
+                        disabled={deletingCourseId === course._id}
                         className='inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600'
                         aria-label={`Delete ${course.title}`}
                       >
-                        <Trash2 size={17} />
+                        {deletingCourseId === course._id ? <Loader2 className='animate-spin' size={17} /> : <Trash2 size={17} />}
                       </button>
                     </div>
                   </div>

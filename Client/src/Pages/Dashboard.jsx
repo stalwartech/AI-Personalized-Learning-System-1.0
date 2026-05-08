@@ -113,12 +113,12 @@ const Dashboard = () => {
     const uniqueSuggestions = [...new Set(combinedSuggestions)]
 
     if (!query) {
-      return uniqueSuggestions.slice(0, 6)
+      return uniqueSuggestions.slice(0, 5)
     }
 
     return uniqueSuggestions
       .filter((topic) => topic.toLowerCase().includes(query))
-      .slice(0, 6)
+      .slice(0, 5)
   }, [recentSearches, searchQuery])
 
   const selectSuggestion = (topic) => {
@@ -226,9 +226,9 @@ const Dashboard = () => {
                     className='h-14 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#4f46e5] focus:ring-4 focus:ring-indigo-100'
                     onChange={(e) => {
                       setSearchQuery(e.target.value)
-                      setShowSuggestions(true)
+                      setShowSuggestions(Boolean(e.target.value.trim()))
                     }}
-                    onFocus={() => setShowSuggestions(true)}
+                    onFocus={() => setShowSuggestions(Boolean(searchQuery.trim()))}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                     disabled={generating}
                     autoFocus

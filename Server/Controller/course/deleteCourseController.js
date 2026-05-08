@@ -1,5 +1,8 @@
+const { validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 const Course = require('../../Model/courseModel');
 const Progress = require('../../Model/progressModel');
+const User = require('../../Model/authModel');
 
 /**
  * DELETE COURSE CONTROLLER
@@ -13,7 +16,34 @@ const Progress = require('../../Model/progressModel');
  */
 const deleteCourse = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
     const { courseId } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Incorrect password'
+      });
+    }
 
     // Find and delete course
     const course = await Course.findOneAndDelete({

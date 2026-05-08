@@ -120,8 +120,13 @@ const Register = () => {
     try {
       const response = await axiosInstance.post('/api/auth/register', data);
       console.log(response);
-      alert('Registration successful!');
-      navigate('/login');
+      const token = response.data?.token || response.data?.data?.token;
+
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+
+      navigate('/');
     } catch (error) {
       console.error(error);
     }
