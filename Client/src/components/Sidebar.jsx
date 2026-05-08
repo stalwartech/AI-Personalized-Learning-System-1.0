@@ -19,7 +19,7 @@ const menuItems = [
     activePaths: ['/'],
   },
   {
-    label: 'My Courses',
+    label: 'Courses',
     path: '/History',
     icon: BookOpen,
     activePaths: ['/History', '/Learn'],

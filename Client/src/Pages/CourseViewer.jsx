@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
 // import './CourseViewer.css';
@@ -55,6 +55,7 @@ const CourseViewer = () => {
   // Quiz score input
   const [quizScore, setQuizScore] = useState('');
   const apiBaseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '') || '';
+  const lessonStartedAtRef = useRef(Date.now());
 
   // ──────────────────────────────────────────────────────────────────────────
   // LOAD COURSE ON PAGE LOAD
@@ -62,6 +63,15 @@ const CourseViewer = () => {
   useEffect(() => {
     fetchCourseFromBackend();
   }, [courseId]);
+
+  useEffect(() => {
+    lessonStartedAtRef.current = Date.now();
+  }, [currentLessonIndex]);
+
+  const getCurrentLessonTimeSpent = () => {
+    const elapsedMinutes = (Date.now() - lessonStartedAtRef.current) / 60000;
+    return Math.max(0.01, Number(elapsedMinutes.toFixed(2)));
+  };
 
   // ──────────────────────────────────────────────────────────────────────────
   // FUNCTION: FETCH COURSE FROM BACKEND
@@ -195,7 +205,7 @@ const CourseViewer = () => {
       
       // Prepare data to send
       const data = {
-        timeSpent: currentLesson.estimatedDuration || 15
+        timeSpent: getCurrentLessonTimeSpent()
       };
       
       // Add quiz score if provided

@@ -82,6 +82,7 @@ export default function CoursePage() {
   const [markingComplete, setMarkingComplete] = useState(false);
   const [allDone, setAllDone] = useState(false);
   const notesRef = useRef(null);
+  const lessonStartedAtRef = useRef(Date.now());
 
   // ── Fetch course on mount ───────────────────────────────────────────────────
   useEffect(() => {
@@ -111,7 +112,13 @@ export default function CoursePage() {
   // ── Scroll notes to top on lesson change ───────────────────────────────────
   useEffect(() => {
     if (notesRef.current) notesRef.current.scrollTop = 0;
+    lessonStartedAtRef.current = Date.now();
   }, [currentIndex]);
+
+  const getCurrentLessonTimeSpent = () => {
+    const elapsedMinutes = (Date.now() - lessonStartedAtRef.current) / 60000;
+    return Math.max(0.01, Number(elapsedMinutes.toFixed(2)));
+  };
 
   if (loading) return <LoadingScreen />;
   if (error) return <ErrorScreen message={error} onBack={() => navigate(-1)} />;
@@ -132,7 +139,7 @@ export default function CoursePage() {
     try {
       await axiosInstance.patch(
         `/api/courses/${courseId}/lessons/${lesson._id}/complete`,
-        { timeSpent: lesson.estimatedDuration || 15 }
+        { timeSpent: getCurrentLessonTimeSpent() }
       );
       const next = new Set([...completedSet, currentIndex]);
       setCompletedSet(next);

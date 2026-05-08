@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
 
@@ -194,6 +194,7 @@ const Learn = () => {
   const [completingLesson, setCompletingLesson] = useState(false);
   
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const lessonStartedAtRef = useRef(Date.now());
   
   const apiURL = import.meta.env.VITE_BASE_URL;
   
@@ -303,6 +304,15 @@ const Learn = () => {
   useEffect(() => {
     loadCourse();
   }, [loadCourse]);
+
+  useEffect(() => {
+    lessonStartedAtRef.current = Date.now();
+  }, [currentLessonIndex]);
+
+  const getCurrentLessonTimeSpent = () => {
+    const elapsedMinutes = (Date.now() - lessonStartedAtRef.current) / 60000;
+    return Math.max(0.01, Number(elapsedMinutes.toFixed(2)));
+  };
   
   const canOpenLesson = (index) => {
     return index === 0 || course.lessons[index]?.completed || course.lessons[index - 1]?.completed;
@@ -355,7 +365,7 @@ const Learn = () => {
       const response = await axiosInstance.put(
         `/api/courses/${courseId}/lessons/${currentLesson._id}/complete`,
         {
-          timeSpent: currentLesson.estimatedDuration || 15,
+          timeSpent: getCurrentLessonTimeSpent(),
         }
       );
 

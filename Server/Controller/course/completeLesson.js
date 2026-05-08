@@ -29,7 +29,7 @@ const completeLesson = async (req, res) => {
     // ── Step 2: Extract data ──────────────────────────────────────────────────
     const { courseId, lessonId } = req.params;
     const { quizScore } = req.body;
-    const timeSpent = Number(req.body.timeSpent || 0);
+    const timeSpent = Number(req.body.timeSpent ?? 0);
 
     // ── Step 3: Find course ───────────────────────────────────────────────────
     const course = await Course.findOne({
@@ -76,8 +76,10 @@ const completeLesson = async (req, res) => {
 
     course.updateProgress();
     
-    // Update analytics
-    course.analytics.totalTimeSpent = (course.analytics.totalTimeSpent || 0) + timeSpent;
+    // Update analytics with the actual time tracked on this lesson.
+    if (!wasAlreadyCompleted) {
+      course.analytics.totalTimeSpent = (course.analytics.totalTimeSpent || 0) + timeSpent;
+    }
     course.analytics.lastAccessed = Date.now();
     
     await course.save();
@@ -93,7 +95,7 @@ const completeLesson = async (req, res) => {
     if (!wasAlreadyCompleted) {
       // Add today's activity
       // This is an INSTANCE METHOD we defined in Progress model
-      const activityTime = timeSpent || lesson.estimatedDuration || 0;
+      const activityTime = timeSpent;
       userProgress.addActivity(activityTime, 1);
       
       // Update totals

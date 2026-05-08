@@ -21,7 +21,7 @@ const videoValidation = [  body('videoId').trim().notEmpty().withMessage('Video 
 
 const completeLessonValidation = [
   body('quizScore').optional().isInt({ min: 0, max: 100 }).withMessage('Quiz score must be 0-100'),
-  body('timeSpent').optional().isInt({ min: 0 }).withMessage('Time spent must be positive')
+  body('timeSpent').optional().isFloat({ min: 0 }).withMessage('Time spent must be positive')
 ];
 
 const deleteCourseValidation = [
