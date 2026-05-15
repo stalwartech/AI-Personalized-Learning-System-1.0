@@ -151,7 +151,7 @@ const History = () => {
             </p>
           </div>
 
-          <div className='grid grid-cols-3 gap-2 sm:min-w-[360px]'>
+          <div className='grid grid-cols-3 gap-2 sm:min-w-90'>
             <MiniStat label='Total' value={courseStats.total} />
             <MiniStat label='Active' value={courseStats.inProgress} />
             <MiniStat label='Done' value={courseStats.completed} />
@@ -229,7 +229,7 @@ const History = () => {
               return (
                 <article
                   key={course._id}
-                  className='flex min-h-[280px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-[#4f46e5] hover:shadow-md'
+                  className='flex min-h-70 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-[#4f46e5] hover:shadow-md'
                 >
                   <div className='border-b border-slate-100 bg-slate-950 p-5 text-white'>
                     <div className='flex items-start justify-between gap-3'>

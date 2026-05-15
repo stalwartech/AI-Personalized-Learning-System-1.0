@@ -586,7 +586,7 @@ const Learn = () => {
                       `}
                     >
                     <div className="flex items-start gap-3">
-                      <span className="font-bold flex-shrink-0 text-lg">
+                      <span className="font-bold shrink-0 text-lg">
                         {lesson.completed ? '✓' : unlocked ? index + 1 : '🔒'}
                       </span>
                       <div className="flex-1 min-w-0">
