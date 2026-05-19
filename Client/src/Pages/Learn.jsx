@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
+import PopupAlert from '../components/PopupAlert';
 
 const parseInlineMarkdown = (text) => {
   const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g).filter(Boolean);
@@ -192,17 +193,24 @@ const Learn = () => {
   const [debugInfo, setDebugInfo] = useState(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [completingLesson, setCompletingLesson] = useState(false);
+  const [popupAlert, setPopupAlert] = useState(null);
   
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const lessonStartedAtRef = useRef(Date.now());
   
   const apiURL = import.meta.env.VITE_BASE_URL;
+
+  const showPopupAlert = useCallback((message, variant = 'info', title = 'Notice') => {
+    setPopupAlert({ message, variant, title });
+  }, []);
   
-  const loadCourse = useCallback(async () => {
+  const loadCourse = useCallback(async ({ silent = false, preserveLesson = false } = {}) => {
     try {
-      setLoading(true); // Set loading to true
-      setError('');
-      setDebugInfo(null);
+      if (!silent) {
+        setLoading(true);
+        setError('');
+        setDebugInfo(null);
+      }
       
       // Get token
       const token = localStorage.getItem('token');
@@ -257,7 +265,9 @@ const Learn = () => {
       }
       
       setCourse(courseData);
-      setCurrentLessonIndex(0);
+      if (!preserveLesson) {
+        setCurrentLessonIndex(0);
+      }
       
       console.log('✅ Course loaded successfully!');
       console.log('   Title:', courseData.title);
@@ -265,6 +275,11 @@ const Learn = () => {
       console.log('   First lesson:', courseData.lessons[0]?.title);
       
     } catch (error) {
+      if (silent) {
+        console.error('Silent course refresh failed:', error);
+        return;
+      }
+
       console.error('═══════════════════════════════════════════');
       console.error('❌ ERROR LOADING COURSE');
       console.error('═══════════════════════════════════════════');
@@ -297,13 +312,30 @@ const Learn = () => {
       
       console.error('═══════════════════════════════════════════');
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [apiURL, courseId, navigate]);
 
   useEffect(() => {
     loadCourse();
   }, [loadCourse]);
+
+  useEffect(() => {
+    if (!course) return undefined;
+
+    const hasGeneratingLessons = course.generationStatus === 'generating'
+      || course.lessons?.some((lesson) => ['pending', 'generating'].includes(lesson.generationStatus));
+
+    if (!hasGeneratingLessons) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      loadCourse({ silent: true, preserveLesson: true });
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [course, loadCourse]);
 
   useEffect(() => {
     lessonStartedAtRef.current = Date.now();
@@ -314,21 +346,33 @@ const Learn = () => {
     return Math.max(0.01, Number(elapsedMinutes.toFixed(2)));
   };
   
+  const isLessonReady = (lesson) => {
+    return !lesson.generationStatus || lesson.generationStatus === 'ready';
+  };
+
   const canOpenLesson = (index) => {
-    return index === 0 || course.lessons[index]?.completed || course.lessons[index - 1]?.completed;
+    const lesson = course.lessons[index];
+    return isLessonReady(lesson) && (index === 0 || lesson?.completed || course.lessons[index - 1]?.completed);
   };
 
   const goToNextLesson = () => {
     if (!course.lessons[currentLessonIndex]?.completed) {
-      alert('Complete this lesson first so your course progress can be updated.');
+      showPopupAlert('Complete this lesson first so your course progress can be updated.', 'warning');
       return;
     }
 
     if (currentLessonIndex < course.lessons.length - 1) {
+      const nextLesson = course.lessons[currentLessonIndex + 1];
+
+      if (!isLessonReady(nextLesson)) {
+        showPopupAlert('The next lesson is still being generated. It will appear here shortly.', 'info');
+        return;
+      }
+
       setCurrentLessonIndex(currentLessonIndex + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      alert('🎉 You are on the last lesson!');
+      showPopupAlert('You are on the last lesson!', 'success', 'Last Lesson');
     }
   };
   
@@ -337,13 +381,13 @@ const Learn = () => {
       setCurrentLessonIndex(currentLessonIndex - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      alert('📚 You are on the first lesson!');
+      showPopupAlert('You are on the first lesson!', 'info', 'First Lesson');
     }
   };
   
   const jumpToLesson = (index) => {
     if (!canOpenLesson(index)) {
-      alert('Complete the previous lesson before opening this one.');
+      showPopupAlert('Complete the previous lesson before opening this one.', 'warning');
       return;
     }
 
@@ -354,6 +398,11 @@ const Learn = () => {
   const completeCurrentLesson = async () => {
     try {
       const currentLesson = course.lessons[currentLessonIndex];
+
+      if (!isLessonReady(currentLesson)) {
+        showPopupAlert('This lesson is still being generated. Please wait a moment.', 'info');
+        return;
+      }
 
       if (!currentLesson || currentLesson.completed) {
         goToNextLesson();
@@ -388,8 +437,14 @@ const Learn = () => {
       if (currentLessonIndex === course.lessons.length - 1) {
         navigate(`/Quiz/${courseId}`);
       } else {
-        setCurrentLessonIndex(currentLessonIndex + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const nextLesson = course.lessons[currentLessonIndex + 1];
+
+        if (isLessonReady(nextLesson)) {
+          setCurrentLessonIndex(currentLessonIndex + 1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          showPopupAlert('Nice work. The next lesson is still being generated and will unlock shortly.', 'success', 'Lesson Complete');
+        }
       }
     } catch (error) {
       console.error('Lesson completion failed:', error);
@@ -397,7 +452,7 @@ const Learn = () => {
       const serverError = error.response?.data?.error;
       const message = validationError || serverError || error.response?.data?.message || 'Failed to complete lesson';
 
-      alert(message);
+      showPopupAlert(message, 'error', 'Lesson Error');
     } finally {
       setCompletingLesson(false);
     }
@@ -423,7 +478,7 @@ const Learn = () => {
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('PDF download failed:', error);
-      alert(error.response?.data?.message || 'Failed to download PDF');
+      showPopupAlert(error.response?.data?.message || 'Failed to download PDF', 'error', 'Download Error');
     } finally {
       setDownloadingPdf(false);
     }
@@ -514,6 +569,8 @@ const Learn = () => {
   const isFirstLesson = currentLessonIndex === 0;
   const isLastLesson = currentLessonIndex === totalLessons - 1;
   const isCurrentLessonCompleted = currentLesson.completed === true;
+  const isCurrentLessonReady = isLessonReady(currentLesson);
+  const generatingLessonsCount = course.lessons.filter((lesson) => ['pending', 'generating'].includes(lesson.generationStatus)).length;
   const courseProgress = course.progress?.percentage || 0;
   const completedLessons = course.progress?.completedLessons || course.lessons.filter((lesson) => lesson.completed).length;
   
@@ -522,6 +579,13 @@ const Learn = () => {
   // ═══════════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-gray-50">
+      <PopupAlert
+        open={Boolean(popupAlert)}
+        title={popupAlert?.title}
+        message={popupAlert?.message}
+        variant={popupAlert?.variant}
+        onClose={() => setPopupAlert(null)}
+      />
       
       {/* HEADER */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
@@ -544,6 +608,11 @@ const Learn = () => {
             <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
               {completedLessons}/{totalLessons} Complete
             </span>
+            {generatingLessonsCount > 0 && (
+              <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">
+                {generatingLessonsCount} Generating
+              </span>
+            )}
           </div>
           <div className="mt-5">
             <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
@@ -570,6 +639,7 @@ const Learn = () => {
               <div className="space-y-2">
                 {course.lessons.map((lesson, index) => {
                   const unlocked = canOpenLesson(index);
+                  const lessonReady = isLessonReady(lesson);
 
                   return (
                     <div
@@ -596,7 +666,7 @@ const Learn = () => {
                         <p className={`text-xs mt-1 ${
                           index === currentLessonIndex ? 'text-indigo-200' : 'text-gray-500'
                         }`}>
-                          {lesson.completed ? 'Completed' : `${lesson.estimatedDuration || 15} min`}
+                          {!lessonReady ? 'Generating...' : lesson.completed ? 'Completed' : `${lesson.estimatedDuration || 15} min`}
                         </p>
                       </div>
                     </div>
@@ -620,11 +690,13 @@ const Learn = () => {
                   Lesson {lessonNumber} of {totalLessons} • {currentLesson.estimatedDuration || 15} minutes
                 </p>
                 <span className={`inline-flex mt-3 px-3 py-1 rounded-full text-sm font-semibold ${
-                  isCurrentLessonCompleted
+                  !isCurrentLessonReady
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : isCurrentLessonCompleted
                     ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {isCurrentLessonCompleted ? '✓ Completed' : 'Not completed yet'}
+                  {!isCurrentLessonReady ? 'Generating lesson...' : isCurrentLessonCompleted ? '✓ Completed' : 'Not completed yet'}
                 </span>
               </div>
               
@@ -664,7 +736,11 @@ const Learn = () => {
               </div>
               
               {/* VIDEO SECTION */}
-              {selectedVideo ? (
+              {!isCurrentLessonReady ? (
+                <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-yellow-800 font-medium">This lesson video is being prepared in the background.</p>
+                </div>
+              ) : selectedVideo ? (
                 <div className="mb-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     📺 Video Lesson
@@ -695,7 +771,11 @@ const Learn = () => {
               )}
               
               {/* NOTES SECTION */}
-              {currentLesson.notes && currentLesson.notes.markdown ? (
+              {!isCurrentLessonReady ? (
+                <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-yellow-800 font-medium">Study notes are still generating. This page will refresh automatically.</p>
+                </div>
+              ) : currentLesson.notes && currentLesson.notes.markdown ? (
                 <div className="mb-8">
                   <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
                     <div>
@@ -759,10 +839,10 @@ const Learn = () => {
                     <button
                       type="button"
                       onClick={completeCurrentLesson}
-                      disabled={completingLesson}
+                      disabled={completingLesson || !isCurrentLessonReady}
                       className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-semibold shadow-md hover:shadow-lg transition-all disabled:bg-indigo-300 disabled:cursor-not-allowed"
                     >
-                      {completingLesson ? 'Saving Progress...' : isLastLesson ? 'Complete Course' : 'Complete & Continue'}
+                      {!isCurrentLessonReady ? 'Generating...' : completingLesson ? 'Saving Progress...' : isLastLesson ? 'Complete Course' : 'Complete & Continue'}
                     </button>
                   )}
 

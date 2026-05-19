@@ -23,7 +23,7 @@ const getSingleCourse = async (req, res) => {
     const course = await Course.findOne({
       _id: courseId,
       userId: req.userId  // Security: user can only access their own courses
-    });
+    }).lean();
 
     // ── Step 3: Check if course exists ────────────────────────────────────────
     if (!course) {
@@ -33,9 +33,13 @@ const getSingleCourse = async (req, res) => {
       });
     }
 
-    // ── Step 4: Update last accessed time ─────────────────────────────────────
-    course.lastAccessed = Date.now();
-    await course.save();
+    // ── Step 4: Update last accessed time without delaying the response ───────
+    Course.updateOne(
+      { _id: courseId, userId: req.userId },
+      { $set: { 'analytics.lastAccessed': new Date() } }
+    ).catch((error) => {
+      console.error('Failed to update last accessed time:', error.message);
+    });
 
     // ── Step 5: Send course data ──────────────────────────────────────────────
     return res.status(200).json({

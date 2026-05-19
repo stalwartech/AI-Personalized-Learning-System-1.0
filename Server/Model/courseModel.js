@@ -67,6 +67,11 @@ const lessonSchema = new mongoose.Schema({
   quizScore: {
     type: Number,
     default: null      // null = not taken yet, 0-100 = score
+  },
+  generationStatus: {
+    type: String,
+    enum: ['pending', 'generating', 'ready', 'failed'],
+    default: 'ready'
   }
 });
 
@@ -141,6 +146,12 @@ const courseSchema = new mongoose.Schema({
     type: String,
     enum: ['in-progress', 'completed', 'abandoned'],
     default: 'in-progress'
+  },
+
+  generationStatus: {
+    type: String,
+    enum: ['generating', 'ready', 'failed'],
+    default: 'ready'
   },
   
   // ── EMBEDDED PROGRESS ──

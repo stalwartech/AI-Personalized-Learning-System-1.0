@@ -1,64 +1,58 @@
 const axios = require('axios');
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const AI_TIMEOUT_MS = Number(process.env.NOTES_AI_TIMEOUT_MS || 7000);
+const OPENROUTER_PARALLEL_MODELS = Number(process.env.OPENROUTER_PARALLEL_MODELS || 3);
 
 const FREE_MODELS = [
-  'openai/gpt-oss-120b:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'nvidia/nemotron-3-super-120b-a12b:free',
-  'qwen/qwen3-next-80b-a3b-instruct:free',
-  'qwen/qwen3.6-plus:free',
   'openai/gpt-oss-20b:free',
-  'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
-  'mistralai/codestral-mamba:free',
-  'deepseek/deepseek-r1:free',
-  'stepfun/step-3-5-flash:free',
-  'google/gemma-3-27b-it:free',
-  'google/gemma-3-12b-it:free',
   'mistralai/mistral-7b-instruct:free',
   'microsoft/phi-3-mini-128k-instruct:free',
+  'google/gemma-3-12b-it:free',
+  'google/gemma-3-27b-it:free',
+  'openai/gpt-oss-120b:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
 ];
 
 //Generate notes using OpenRouter with model fallback chain
 
-async function generateNotesWithOpenRouter(prompt) {
-  for (const model of FREE_MODELS) {
-    try {
-      console.log(`🔵 Trying OpenRouter model: ${model}`);
+async function generateNotesWithOpenRouterModel(prompt, model) {
+  console.log(`🔵 Trying OpenRouter model: ${model}`);
 
-      const response = await axios.post(
-        OPENROUTER_URL,
-        {
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.5,
-          max_tokens: 2000,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 60000,
-        }
-      );
-
-      console.log(`✅ Notes generated with: ${model}`);
-      return {
-        content: response.data.choices[0].message.content,
-        provider: `OpenRouter (${model})`,
-      };
-
-    } catch (error) {
-      const status = error.response?.status;
-      console.warn(`⚠️ ${model} failed (${status || error.message}), trying next...`);
-      // Continue to next model in the array
+  const response = await axios.post(
+    OPENROUTER_URL,
+    {
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
+      max_tokens: 1400,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: AI_TIMEOUT_MS,
     }
+  );
+
+  console.log(`✅ Notes generated with: ${model}`);
+  return {
+    content: response.data.choices[0].message.content,
+    provider: `OpenRouter (${model})`,
+  };
+}
+
+async function generateNotesWithOpenRouter(prompt) {
+  const attempts = FREE_MODELS
+    .slice(0, OPENROUTER_PARALLEL_MODELS)
+    .map((model) => generateNotesWithOpenRouterModel(prompt, model));
+
+  if (attempts.length === 0) {
+    throw new Error('NO_OPENROUTER_MODELS_CONFIGURED');
   }
 
-  // All models exhausted
-  throw new Error('OPENROUTER_ALL_MODELS_FAILED');
+  return Promise.any(attempts);
 }
 
 // Generate notes using Gemini
@@ -72,13 +66,13 @@ async function generateNotesWithGemini(prompt) {
       {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.5,
-          maxOutputTokens: 2000
+          temperature: 0.4,
+          maxOutputTokens: 1400
         }
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 60000
+        timeout: AI_TIMEOUT_MS
       }
     );
 
@@ -126,16 +120,10 @@ Generate notes in markdown format with these sections:
 ## Further Reading
 [Topics to explore next]`;
 
-  let result;
-  
-  try {
-    // Try OpenRouter first
-    result = await generateNotesWithOpenRouter(prompt);
-  } catch (error) {
-    // Fall back to Gemini
-    console.log('🔄 Switching to Gemini for notes...');
-    result = await generateNotesWithGemini(prompt);
-  }
+  const result = await Promise.any([
+    generateNotesWithOpenRouter(prompt),
+    generateNotesWithGemini(prompt),
+  ]);
 
   console.log(`📝 Notes generated using: ${result.provider}`);
   return result.content;

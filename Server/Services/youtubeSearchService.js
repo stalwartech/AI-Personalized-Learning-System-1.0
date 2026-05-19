@@ -10,6 +10,7 @@ const env = require("dotenv").config();
  */
 
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const YOUTUBE_TIMEOUT_MS = Number(process.env.YOUTUBE_TIMEOUT_MS || 2500);
 
 /**
  * Search YouTube for videos
@@ -33,7 +34,8 @@ const searchVideos = async (query, maxResults = 1) => {
         relevanceLanguage: 'en',       // English videos
         safeSearch: 'strict',          // Family-friendly content
         order: 'relevance'             // Most relevant first
-      }
+      },
+      timeout: YOUTUBE_TIMEOUT_MS
     });
 
     const videoItems = searchResponse.data.items;
@@ -52,7 +54,8 @@ const searchVideos = async (query, maxResults = 1) => {
         part: 'contentDetails,statistics',
         id: videoIds,
         key: process.env.YOUTUBE_API_KEY
-      }
+      },
+      timeout: YOUTUBE_TIMEOUT_MS
     });
 
     const videoDetails = detailsResponse.data.items;
@@ -66,8 +69,8 @@ const searchVideos = async (query, maxResults = 1) => {
         videoId: video.id.videoId,
         thumbnail: video.snippet.thumbnails.medium.url,
         channelTitle: video.snippet.channelTitle,
-        duration: formatDuration(details.contentDetails.duration),     // "15m 30s"
-        viewCount: formatViewCount(details.statistics.viewCount),      // "2.5M views"
+        duration: details?.contentDetails?.duration ? formatDuration(details.contentDetails.duration) : '',
+        viewCount: details?.statistics?.viewCount ? formatViewCount(details.statistics.viewCount) : '',
         url: `https://www.youtube.com/watch?v=${video.id.videoId}`,
         embedUrl: `https://www.youtube.com/embed/${video.id.videoId}`
       };

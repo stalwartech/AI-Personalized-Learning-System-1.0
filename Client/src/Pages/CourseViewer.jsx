@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/axiosConfig';
+import PopupAlert from '../components/PopupAlert';
 // import './CourseViewer.css';
 
 /**
@@ -51,6 +52,7 @@ const CourseViewer = () => {
   
   // Active tab (what content to show)
   const [activeTab, setActiveTab] = useState('video'); // 'video', 'notes', or 'complete'
+  const [popupAlert, setPopupAlert] = useState(null);
   
   // Quiz score input
   const [quizScore, setQuizScore] = useState('');
@@ -71,6 +73,16 @@ const CourseViewer = () => {
   const getCurrentLessonTimeSpent = () => {
     const elapsedMinutes = (Date.now() - lessonStartedAtRef.current) / 60000;
     return Math.max(0.01, Number(elapsedMinutes.toFixed(2)));
+  };
+
+  const showPopupAlert = (message, variant = 'info', title = 'Notice', onClose) => {
+    setPopupAlert({ message, variant, title, onClose });
+  };
+
+  const closePopupAlert = () => {
+    const onClose = popupAlert?.onClose;
+    setPopupAlert(null);
+    onClose?.();
   };
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -95,8 +107,7 @@ const CourseViewer = () => {
       
     } catch (error) {
       console.error('❌ Error loading course:', error);
-      alert('Failed to load course. Redirecting to dashboard...');
-      navigate('/');
+      showPopupAlert('Failed to load course. Redirecting to dashboard...', 'error', 'Course Error', () => navigate('/'));
     } finally {
       setLoading(false);
     }
@@ -122,7 +133,7 @@ const CourseViewer = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Already on last lesson
-      alert('🎉 You\'re on the last lesson!');
+      showPopupAlert('You are on the last lesson!', 'success', 'Last Lesson');
     }
   };
 
@@ -146,7 +157,7 @@ const CourseViewer = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Already on first lesson
-      alert('📚 You\'re on the first lesson!');
+      showPopupAlert('You are on the first lesson!', 'info', 'First Lesson');
     }
   };
 
@@ -189,7 +200,7 @@ const CourseViewer = () => {
       
     } catch (error) {
       console.error('❌ Error selecting video:', error);
-      alert('Failed to save video selection');
+      showPopupAlert('Failed to save video selection', 'error', 'Video Error');
     }
   };
 
@@ -227,17 +238,16 @@ const CourseViewer = () => {
       // Check if this is the last lesson
       if (currentLessonIndex === course.lessons.length - 1) {
         // Last lesson completed - course finished!
-        alert('🎉 Congratulations! You completed the entire course!');
-        navigate('/dashboard');
+        showPopupAlert('Congratulations! You completed the entire course!', 'success', 'Course Complete', () => navigate('/dashboard'));
       } else {
         // Move to next lesson
-        alert('✅ Lesson completed! Moving to next lesson...');
+        showPopupAlert('Lesson completed! Moving to next lesson...', 'success', 'Lesson Complete');
         goToNextLesson();
       }
       
     } catch (error) {
       console.error('❌ Error completing lesson:', error);
-      alert('Failed to mark lesson as complete');
+      showPopupAlert('Failed to mark lesson as complete', 'error', 'Lesson Error');
     }
   };
 
@@ -247,6 +257,13 @@ const CourseViewer = () => {
   if (loading || !course) {
     return (
       <div className="loading-screen">
+        <PopupAlert
+          open={Boolean(popupAlert)}
+          title={popupAlert?.title}
+          message={popupAlert?.message}
+          variant={popupAlert?.variant}
+          onClose={closePopupAlert}
+        />
         <span className="spinner"></span>
         <p>Loading course...</p>
       </div>
@@ -275,6 +292,13 @@ const CourseViewer = () => {
   // ──────────────────────────────────────────────────────────────────────────
   return (
     <div className="course-viewer">
+      <PopupAlert
+        open={Boolean(popupAlert)}
+        title={popupAlert?.title}
+        message={popupAlert?.message}
+        variant={popupAlert?.variant}
+        onClose={closePopupAlert}
+      />
       
       {/* ═══════════════════════════════════════════════════════════════════
           SIDEBAR - List of all lessons

@@ -1,223 +1,253 @@
 const { validationResult } = require('express-validator');
 const Course = require('../../Model/courseModel');
 const Progress = require('../../Model/progressModel');
-const generateCourseWithAI = require("../../Services/AIGenerateCourseService");
+const generateCourseWithAI = require('../../Services/AIGenerateCourseService');
 const generateNotes = require('../../Services/AIGenerateNoteService');
-
 const { searchVideos } = require('../../Services/youtubeSearchService');
 const { generatePDF } = require('../../Services/PDFgenerator');
 
-/**
- * Helper function: Convert markdown text to plain text
- * Removes all markdown symbols like #, **, *, []()
- * 
- * Example:
- * Input:  "# Hello **World**"
- * Output: "Hello World"
- */
-function convertMarkdownToPlainText(markdown) {
-  let plainText = markdown;
-  
-  // Remove headers (# ## ###)
-  plainText = plainText.replace(/#{1,6}\s/g, '');
-  
-  // Remove bold (**text**)
-  plainText = plainText.replace(/\*\*/g, '');
-  
-  // Remove italic (*text*)
-  plainText = plainText.replace(/\*/g, '');
-  
-  // Remove links [text](url) - keep just the text
-  plainText = plainText.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-  
-  return plainText;
+function convertMarkdownToPlainText(markdown = '') {
+  return markdown
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+}
+
+function parseAIJson(aiResponse) {
+  const cleanedResponse = String(aiResponse || '')
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/i, '')
+    .trim();
+  const firstBrace = cleanedResponse.indexOf('{');
+  const lastBrace = cleanedResponse.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1) {
+    throw new Error('AI did not return a JSON object');
+  }
+
+  return JSON.parse(cleanedResponse.slice(firstBrace, lastBrace + 1));
+}
+
+function normalizeLesson(lesson, index) {
+  const title = String(lesson?.title || `Lesson ${index + 1}`).trim();
+  const content = String(lesson?.content || `Learn the key ideas and practical steps for ${title}.`).trim();
+  const estimatedDuration = Number(lesson?.estimatedDuration) || 15;
+
+  return {
+    title,
+    order: Number(lesson?.order) || index + 1,
+    content,
+    estimatedDuration: Math.min(Math.max(estimatedDuration, 10), 30),
+  };
+}
+
+async function enrichLesson({ lesson, query, difficulty, courseTitle, index }) {
+  const youtubeSearchQuery = `${query} ${lesson.title} tutorial ${difficulty}`;
+
+  const [videoResults, notesInMarkdown] = await Promise.all([
+    searchVideos(youtubeSearchQuery, 1).catch((error) => {
+      console.error(`YouTube search failed for "${lesson.title}":`, error.message);
+      return [];
+    }),
+    generateNotes(lesson.title, lesson.content, difficulty),
+  ]);
+
+  const pdfResult = await generatePDF(
+    lesson.title,
+    notesInMarkdown,
+    courseTitle,
+    index + 1
+  );
+
+  return {
+    ...lesson,
+    videoOptions: videoResults,
+    selectedVideo: videoResults.length > 0 ? videoResults[0].videoId : null,
+    notes: {
+      plainText: convertMarkdownToPlainText(notesInMarkdown),
+      markdown: notesInMarkdown,
+      pdfUrl: pdfResult.url,
+    },
+    generationStatus: 'ready',
+  };
+}
+
+async function updateLessonGenerationStatus(courseId, lessonId, generationStatus) {
+  await Course.updateOne(
+    { _id: courseId, 'lessons._id': lessonId },
+    { $set: { 'lessons.$.generationStatus': generationStatus } }
+  );
+}
+
+async function updateGeneratedLesson(courseId, lessonId, lesson) {
+  await Course.updateOne(
+    { _id: courseId, 'lessons._id': lessonId },
+    {
+      $set: {
+        'lessons.$.content': lesson.content,
+        'lessons.$.estimatedDuration': lesson.estimatedDuration,
+        'lessons.$.videoOptions': lesson.videoOptions,
+        'lessons.$.selectedVideo': lesson.selectedVideo,
+        'lessons.$.notes': lesson.notes,
+        'lessons.$.generationStatus': lesson.generationStatus,
+      },
+    }
+  );
+}
+
+async function generateRemainingLessonsInBackground({ courseId, lessons, query, difficulty, courseTitle }) {
+  console.log(`Background lesson generation started for course ${courseId}`);
+
+  for (let index = 1; index < lessons.length; index += 1) {
+    const lesson = lessons[index];
+    const lessonId = lesson._id;
+
+    try {
+      await updateLessonGenerationStatus(courseId, lessonId, 'generating');
+
+      const enrichedLesson = await enrichLesson({
+        lesson,
+        query,
+        difficulty,
+        courseTitle,
+        index,
+      });
+
+      await updateGeneratedLesson(courseId, lessonId, enrichedLesson);
+      console.log(`Background lesson ${index + 1} ready for course ${courseId}`);
+    } catch (error) {
+      console.error(`Background lesson ${index + 1} failed for course ${courseId}:`, error.message);
+      await updateLessonGenerationStatus(courseId, lessonId, 'failed').catch((updateError) => {
+        console.error('Failed to mark lesson generation as failed:', updateError.message);
+      });
+    }
+  }
+
+  const course = await Course.findById(courseId).select('lessons.generationStatus').lean();
+  const hasFailedLessons = course?.lessons?.some((lesson) => lesson.generationStatus === 'failed');
+  const hasUnfinishedLessons = course?.lessons?.some((lesson) => ['pending', 'generating'].includes(lesson.generationStatus));
+
+  await Course.updateOne(
+    { _id: courseId },
+    { $set: { generationStatus: hasFailedLessons || hasUnfinishedLessons ? 'failed' : 'ready' } }
+  );
+
+  console.log(`Background lesson generation finished for course ${courseId}`);
 }
 
 /**
- * GENERATE COURSE CONTROLLER
- * 
- * This is the MAIN FEATURE of the app!
- * 
- * What happens:
- * 1. User searches: "Learn Python" + "Beginner"
- * 2. AI generates course structure (8 lessons)
- * 3. For EACH lesson:
- *    - Fetch 3 YouTube videos
- *    - Generate AI study notes
- *    - Create PDF from notes
- * 4. Save everything to database (ONE document with all embedded data)
- * 5. Update user's progress stats
- * 6. Return complete course to frontend
- * 
- * Time: Takes 30-60 seconds (lots of API calls happening)
- * 
- * @route   POST /api/courses/generate
- * @access  Private (must be logged in)
+ * Generate a course quickly by returning after the first lesson is ready.
+ * Remaining lessons are enriched in the background and become visible as they finish.
  */
 const generateCourse = async (req, res) => {
   try {
-    // ── Step 1: Validate input ────────────────────────────────────────────────
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
-    // ── Step 2: Extract data ──────────────────────────────────────────────────
     const { query, difficulty } = req.body;
-    const userId = req.userId; // Set by auth middleware
-    
-    // Example: query = "Learn Python", difficulty = "beginner"
-    
-    console.log(`🎓 Starting course generation: "${query}" (${difficulty})`);
+    const userId = req.userId;
 
-    // ── Step 3: Generate course structure with AI ─────────────────────────────
-    // This calls OpenRouter API and gets back:
-    // {
-    //   title: "Python Programming Fundamentals",
-    //   description: "Learn Python from basics...",
-    //   category: "Programming",
-    //   lessons: [
-    //     { title: "Variables", order: 1, content: "...", estimatedDuration: 15 },
-    //     { title: "Functions", order: 2, content: "...", estimatedDuration: 20 },
-    //     ... 6-8 more lessons
-    //   ]
-    // }
-    const AiResponse = await generateCourseWithAI(query, difficulty);
-    const courseDataFromAI = JSON.parse(AiResponse);
-    
-    console.log(courseDataFromAI);
-    console.log( typeof (courseDataFromAI));
-    // console.log(courseDataFromAI.description);
-    // console.log(courseDataFromAI.lessons);
-    // console.log(courseDataFromAI.category);
+    console.log(`Starting staged course generation: "${query}" (${difficulty})`);
 
+    const aiResponse = await generateCourseWithAI(query, difficulty);
+    const courseDataFromAI = parseAIJson(aiResponse);
 
-    
-    console.log(`✅ AI generated ${courseDataFromAI.lessons.length} lessons`);
+    if (!Array.isArray(courseDataFromAI.lessons) || courseDataFromAI.lessons.length === 0) {
+      throw new Error('AI did not return any lessons');
+    }
 
-    // ── Step 4: Enhance EACH lesson with videos and notes ─────────────────────
-    // We use Promise.all() to do this in PARALLEL (all at once)
-    // Why? If we did one at a time, it would take forever
-    // Parallel: 30 seconds | Sequential: 5 minutes
-    
-    const enhancedLessons = await Promise.all(
-      courseDataFromAI.lessons.map(async (lesson, index) => {
-        // This function runs for EACH lesson simultaneously
-        
-        try {
-          console.log(`🎥 Processing lesson ${index + 1}: "${lesson.title}"`);
-          
-          // ── 4a: Fetch YouTube videos ────────────────────────────────────────
-          // Search query combines: topic + lesson title + difficulty
-          // Example: "Learn Python Variables tutorial beginner"
-          const youtubeSearchQuery = `${query} ${lesson.title} tutorial ${difficulty}`;
-          const videoResults = await searchVideos(youtubeSearchQuery, 3);
-          // Returns array of 3 videos (or empty array if none found)
-          
-          // ── 4b: Generate AI notes ───────────────────────────────────────────
-          // AI creates study notes based on the lesson content
-          const notesInMarkdown = await generateNotes(lesson.title,lesson.content,difficulty);
-          // Returns markdown text with headers, bullet points, etc.
-          
-          // ── 4c: Convert markdown to plain text ──────────────────────────────
-          const plainTextNotes = convertMarkdownToPlainText(notesInMarkdown);
-          
-          // ── 4d: Generate PDF ────────────────────────────────────────────────
-          // Creates a formatted PDF file from the markdown notes
-          const pdfResult = await generatePDF(
-            lesson.title,
-            notesInMarkdown,
-            courseDataFromAI.title,
-            index + 1
-          );
-          // Returns: { filename: "notes_variables_123.pdf", url: "/api/courses/notes/pdf/..." }
-          
-          console.log(`✅ Lesson ${index + 1} enhanced successfully`);
-          
-          // ── 4e: Return enhanced lesson ───────────────────────────────────────
-          return {
-            ...lesson,  // Keep original lesson data (title, content, order, etc.)
-            videoOptions: videoResults,  // Add the 3 YouTube videos
-            selectedVideo: videoResults.length > 0 ? videoResults[0].videoId : null,  // Default to first video
-            notes: {
-              plainText: plainTextNotes,
-              markdown: notesInMarkdown,
-              pdfUrl: pdfResult.url
-            }
-          };
-          
-        } catch (error) {
-          // If anything fails for THIS lesson, log it but don't crash
-          // Just return the lesson without videos/notes
-          console.error(`⚠️ Error processing lesson "${lesson.title}":`, error.message);
-          
-          return {
-            ...lesson,
-            videoOptions: [],
-            selectedVideo: null,
-            notes: {
-              plainText: '',
-              markdown: '',
-              pdfUrl: null
-            }
-          };
-        }
-      })
-    );
-    
-    console.log(`✅ All lessons enhanced`);
+    const outlineLessons = courseDataFromAI.lessons
+      .slice(0, 8)
+      .map(normalizeLesson);
 
-    // ── Step 5: Save course to database ───────────────────────────────────────
-    // Create a new course document with ALL embedded data
+    const firstLesson = await enrichLesson({
+      lesson: outlineLessons[0],
+      query,
+      difficulty,
+      courseTitle: courseDataFromAI.title,
+      index: 0,
+    });
+
+    const stagedLessons = [
+      firstLesson,
+      ...outlineLessons.slice(1).map((lesson) => ({
+        ...lesson,
+        videoOptions: [],
+        selectedVideo: null,
+        notes: {
+          plainText: '',
+          markdown: '',
+          pdfUrl: null,
+        },
+        generationStatus: 'pending',
+      })),
+    ];
+
     const newCourse = await Course.create({
-      userId: userId,
+      userId,
       title: courseDataFromAI.title,
       description: courseDataFromAI.description,
-      difficulty: difficulty,
+      difficulty,
       searchQuery: query,
       category: courseDataFromAI.category || 'General',
-      lessons: enhancedLessons,  // All lessons with videos and notes embedded
+      lessons: stagedLessons,
+      generationStatus: stagedLessons.length > 1 ? 'generating' : 'ready',
       progress: {
         completedLessons: 0,
-        totalLessons: enhancedLessons.length,
-        percentage: 0
-      }
+        totalLessons: stagedLessons.length,
+        percentage: 0,
+      },
     });
-    
-    console.log(`✅ Course saved to database: ${newCourse._id}`);
 
-    // ── Step 6: Update user's progress stats ──────────────────────────────────
-    // Find or create progress document for this user
-    let userProgress = await Progress.findOne({ userId: userId });
+    let userProgress = await Progress.findOne({ userId });
     if (!userProgress) {
-      // First course - create new progress document
-      userProgress = new Progress({ userId: userId });
+      userProgress = new Progress({ userId });
     }
-    
-    // Increment counters
+
     userProgress.totalStats.coursesGenerated += 1;
     userProgress.totalStats.coursesInProgress += 1;
     await userProgress.save();
 
-    // ── Step 7: Send success response ─────────────────────────────────────────
-    return res.status(201).json({  // 201 = Created
-      success: true,
-      message: 'Course generated successfully',
-      data: {
-        course: newCourse  // Send back the complete course
-      }
-    });
+    if (stagedLessons.length > 1) {
+      setImmediate(() => {
+        generateRemainingLessonsInBackground({
+          courseId: newCourse._id,
+          lessons: newCourse.lessons.map((lesson) => lesson.toObject()),
+          query,
+          difficulty,
+          courseTitle: newCourse.title,
+        }).catch((error) => {
+          console.error(`Background generation crashed for course ${newCourse._id}:`, error);
+          Course.updateOne(
+            { _id: newCourse._id },
+            { $set: { generationStatus: 'failed' } }
+          ).catch((updateError) => {
+            console.error('Failed to mark course generation as failed:', updateError.message);
+          });
+        });
+      });
+    }
 
+    return res.status(201).json({
+      success: true,
+      message: 'Course started successfully. More lessons are generating in the background.',
+      data: {
+        course: newCourse,
+      },
+    });
   } catch (error) {
-    // ── Handle any errors ─────────────────────────────────────────────────────
     console.error('Generate course error:', error);
     return res.status(500).json({
       success: false,
       message: 'Error generating course',
-      error: error.message
+      error: error.message,
     });
   }
 };
