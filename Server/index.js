@@ -11,6 +11,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3021',
   'https://ai-personalized-learning-system-1-0-ruby.vercel.app',
+ ' http://tarxon.online/',
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
   process.env.CORS_ORIGIN,
