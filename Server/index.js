@@ -42,7 +42,7 @@ const Port = process.env.PORT || 5000;
 app.use(express.json()); // make sure this is here too, to parse request bodies
 
 // Database
-const database = require("./config/db");
+const database = require("./Config/db");
 database()
 
 // Routes
